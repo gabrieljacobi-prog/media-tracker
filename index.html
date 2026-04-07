@@ -365,7 +365,7 @@
         <span id="catFilterLabel">All Categories</span>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="dropdown" id="catDropdown" style="min-width:210px"></div>
+      <div class="dropdown" id="catDropdown" style="min-width:210px;left:0;right:auto;max-width:calc(100vw - 32px)"></div>
     </div>
     <div class="search-wrap">
       <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
@@ -472,15 +472,16 @@
   // ── Auth ──────────────────────────────────────────────────
   const OWNER_EMAIL = 'gabriel.jacobi@gmail.com';
 
-  const ua = navigator.userAgent;
-  const USE_REDIRECT = /Android/.test(ua) && /Chrome\//.test(ua) && !/Firefox/.test(ua);
-
-  if (USE_REDIRECT) {
-    auth.getRedirectResult().catch(err => {
-      if (err.code) showAuthError(err.code);
-      console.error('Redirect error:', err);
-    });
-  }
+  // Always check for a pending redirect result on load (handles Chrome Android
+  // fallback and any browser where popup navigated the tab instead of opening one)
+  auth.getRedirectResult().then(result => {
+    if (result && result.user) {
+      console.log('Redirect sign-in completed:', result.user.email);
+    }
+  }).catch(err => {
+    console.error('getRedirectResult error:', err);
+    showAuthError(err.code || err.message || 'Redirect sign-in failed. Try again or use a different browser.');
+  });
 
   auth.onAuthStateChanged(user => {
     currentUser = user;
@@ -513,21 +514,23 @@
       return;
     }
     const provider = new firebase.auth.GoogleAuthProvider();
-    if (USE_REDIRECT) {
-      auth.signInWithRedirect(provider).catch(err => {
-        showAuthError(err.code || err.message);
-        console.error(err);
-      });
-    } else {
-      auth.signInWithPopup(provider).catch(err => {
-        console.error(err);
-        if (err.code === 'auth/popup-blocked') {
-          showAuthError('Popup blocked — please allow popups for this site and try again.');
-        } else if (err.code !== 'auth/popup-closed-by-user') {
-          showAuthError(err.code || err.message || 'Sign-in failed.');
-        }
-      });
-    }
+    // Try popup first on all platforms. If Chrome Android opens it as a
+    // same-tab navigation (older behavior), fall back to signInWithRedirect.
+    auth.signInWithPopup(provider).catch(err => {
+      console.error('Popup error:', err);
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        return; // user closed it — no error shown
+      }
+      if (err.code === 'auth/popup-blocked') {
+        // Popup was blocked; fall back to redirect
+        auth.signInWithRedirect(provider).catch(redirectErr => {
+          showAuthError(redirectErr.code || redirectErr.message || 'Sign-in failed.');
+          console.error('Redirect fallback error:', redirectErr);
+        });
+      } else {
+        showAuthError(err.code || err.message || 'Sign-in failed.');
+      }
+    });
   }
 
   // ── Kebab menu ────────────────────────────────────────────
@@ -558,7 +561,9 @@
 
   function selectYear(y) {
     selectedYear = y;
+    activeFilter = 'All'; // reset category filter when switching years
     document.getElementById('yearLabel').textContent = y;
+    document.getElementById('catFilterLabel').textContent = 'All Categories';
     document.getElementById('inputYear').value = y;
     closeAllDropdowns();
     renderAll();
@@ -577,7 +582,8 @@
   // ── Category filter ───────────────────────────────────────
   function buildCatDropdown() {
     const dd = document.getElementById('catDropdown');
-    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...allCats()];
+    const usedIds = new Set(entries.filter(e => getYear(e) === selectedYear).map(e => e.category));
+    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...allCats().filter(c => usedIds.has(c.id))];
     dd.innerHTML = cats.map(c => `
       <button class="dropdown-item${c.id === activeFilter ? ' selected' : ''}" onclick="selectCatFilter('${c.id}')">
         ${c.icon} ${c.label}
