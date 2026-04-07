@@ -6,6 +6,7 @@
   <title>Media Tracker</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,6 +19,7 @@
       --text: #e8e8f0;
       --text-muted: #8888aa;
       --danger: #ff5c72;
+      --radius: 12px;
     }
 
     body {
@@ -25,259 +27,309 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 24px 16px 60px;
+      padding-bottom: 60px;
     }
 
+    svg { display: block; }
+
+    /* ── HEADER ── */
     header {
-      max-width: 860px;
-      margin: 0 auto 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
-    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .logo-icon {
-      width: 34px; height: 34px;
-      background: var(--accent);
-      border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; background: var(--accent);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .logo-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
-    h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-    .year-tag {
-      font-size: 12px; font-weight: 600;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 6px; padding: 2px 8px; color: var(--text-muted);
-      margin-left: 6px;
-    }
+    .logo-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; }
 
-    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     .sync-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--text-muted); flex-shrink: 0;
-      transition: background 0.3s;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-muted); flex-shrink: 0; transition: background .3s;
     }
     .sync-dot.synced  { background: #52c41a; }
-    .sync-dot.syncing { background: #faad14; animation: pulse 1s infinite; }
+    .sync-dot.syncing { background: #faad14; animation: blink 1s infinite; }
     .sync-dot.error   { background: var(--danger); }
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
+    /* ── BUTTONS ── */
     .btn {
-      border: none; border-radius: 8px; padding: 8px 14px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: opacity .15s; display: flex; align-items: center; gap: 6px;
+      border: none; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: opacity .15s; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
     }
     .btn:hover { opacity: .82; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-ghost {
-      background: var(--surface2); color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
+    .btn-primary { background: var(--accent); color: #fff; padding: 10px 16px; }
+    .btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 16px; }
     .btn-icon {
       background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text-muted); border-radius: 8px;
-      padding: 7px 10px; cursor: pointer; transition: opacity .15s;
-      display: flex; align-items: center;
+      color: var(--text-muted); padding: 10px; border-radius: 10px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: opacity .15s; flex-shrink: 0;
     }
     .btn-icon:hover { opacity: .8; }
-    .btn-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+    .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* Dropdown menu */
+    .btn-add svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .btn-add-label { } /* shown on desktop */
+    @media (max-width: 480px) {
+      .btn-add-label { display: none; }
+      .btn-primary.btn-add { padding: 10px 12px; border-radius: 10px; }
+      .logo-text { font-size: 16px; }
+    }
+
+    /* ── DROPDOWN ── */
     .menu-wrap { position: relative; }
     .dropdown {
-      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      display: none; position: absolute; right: 0; top: calc(100% + 8px);
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 6px; min-width: 160px; z-index: 100;
-      box-shadow: 0 8px 24px #0008;
+      border-radius: var(--radius); padding: 6px; min-width: 180px;
+      z-index: 200; box-shadow: 0 12px 32px #0009;
     }
     .dropdown.open { display: block; }
     .dropdown-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: 7px; font-size: 13px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 8px; font-size: 14px;
       color: var(--text-muted); cursor: pointer; transition: background .12s;
-      border: none; background: none; width: 100%; text-align: left;
+      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
     }
-    .dropdown-item:hover { background: var(--surface2); color: var(--text); }
-    .dropdown-item svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .dropdown-item:hover, .dropdown-item.selected { background: var(--surface2); color: var(--text); }
+    .dropdown-item.selected { color: var(--accent); }
+    .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .dropdown-sep { height: 1px; background: var(--border); margin: 4px 0; }
 
-    .container { max-width: 860px; margin: 0 auto; }
+    /* ── MAIN LAYOUT ── */
+    .container { max-width: 700px; margin: 0 auto; padding: 0 16px; }
 
-    /* Stats */
-    .stats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .stat-chip {
+    /* ── YEAR NAV ── */
+    .year-nav {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      padding: 20px 0 16px;
+    }
+    .year-nav-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; cursor: pointer;
+      color: var(--text-muted); display: flex; align-items: center;
+      transition: all .15s;
+    }
+    .year-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .year-nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .year-display {
+      font-size: 28px; font-weight: 800; letter-spacing: -1px;
+      min-width: 90px; text-align: center;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      display: flex; align-items: center; gap: 10px;
+      padding-bottom: 16px;
+    }
+
+    .cat-filter-wrap { position: relative; flex-shrink: 0; }
+    .cat-filter-btn {
+      display: flex; align-items: center; gap: 8px;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 20px; padding: 5px 13px; font-size: 13px;
-      display: flex; align-items: center; gap: 6px;
+      border-radius: 10px; padding: 10px 14px; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--text-muted);
+      transition: all .15s; font-family: inherit; white-space: nowrap;
     }
-    .stat-chip svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
-    .stat-chip .n { font-weight: 700; }
+    .cat-filter-btn:hover, .cat-filter-btn.active { border-color: var(--accent); color: var(--text); }
+    .cat-filter-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .cat-filter-btn .chevron { width: 14px; height: 14px; opacity: .6; transition: transform .2s; }
+    .cat-filter-btn.open .chevron { transform: rotate(180deg); }
 
-    /* Card / form */
-    .card {
+    /* search */
+    .search-wrap { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+    .search-input-field {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px; margin-bottom: 18px;
+      border-radius: 10px; color: var(--text); font-size: 14px;
+      padding: 10px 14px; outline: none; font-family: inherit;
+      width: 0; opacity: 0; transition: width .25s, opacity .2s, border-color .15s;
+      pointer-events: none;
     }
-    .card-title {
+    .search-input-field.open {
+      width: 180px; opacity: 1; pointer-events: all;
+    }
+    @media (max-width: 420px) {
+      .search-input-field.open { width: 130px; }
+    }
+    .search-input-field:focus { border-color: var(--accent); }
+
+    /* ── STATS ── */
+    .stats-line {
+      font-size: 13px; color: var(--text-muted);
+      padding-bottom: 14px; display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .stats-line span { display: flex; align-items: center; gap: 5px; }
+    .stats-line svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .stats-line .total { font-weight: 700; color: var(--text); }
+
+    /* ── ADD FORM ── */
+    .add-form {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
+      display: none;
+    }
+    .add-form.open { display: block; }
+    .form-title {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
       letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px;
     }
-
     label {
-      font-size: 11px; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: .4px;
-      display: block; margin-bottom: 6px;
+      font-size: 12px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 7px;
     }
     input[type=text], input[type=number] {
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-size: 14px;
-      padding: 9px 12px; outline: none; transition: border-color .15s;
+      border-radius: 10px; color: var(--text); font-size: 16px;
+      padding: 12px 14px; outline: none; transition: border-color .15s;
       font-family: inherit; width: 100%;
     }
     input:focus { border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 420px) { .form-row { grid-template-columns: 1fr; } }
 
-    .form-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-bottom: 14px; }
-    @media(max-width:500px){ .form-row { grid-template-columns: 1fr; } }
-
-    .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
-
-    /* Category pills */
+    /* category pills in form */
     .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .cat-pill {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600;
       cursor: pointer; border: 2px solid transparent;
-      background: var(--surface2); color: var(--text-muted);
-      transition: all .15s;
+      background: var(--surface2); color: var(--text-muted); transition: all .15s;
     }
-    .cat-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
     .cat-pill.active { color: #fff; }
-    .cat-pill.add-custom {
-      border-style: dashed; border-color: var(--border); color: var(--text-muted);
-    }
-    .cat-pill.add-custom:hover { border-color: var(--accent); color: var(--accent); }
+    .cat-pill.add-pill { border-style: dashed; border-color: var(--border); }
+    .cat-pill.add-pill:hover { border-color: var(--accent); color: var(--accent); }
 
-    .custom-input-wrap { display: none; align-items: center; gap: 6px; }
-    .custom-input-wrap.visible { display: flex; }
-    .custom-input-wrap input { width: 150px; padding: 6px 10px; font-size: 13px; }
-    .custom-input-wrap .btn { padding: 6px 12px; font-size: 13px; }
+    .custom-row { display: none; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .custom-row.open { display: flex; }
+    .custom-row input { font-size: 15px; padding: 10px 13px; }
+    .custom-row .btn { padding: 10px 14px; font-size: 14px; }
 
-    /* Filter bar */
-    .filter-bar {
-      display: flex; gap: 8px; margin-bottom: 16px;
-      flex-wrap: wrap; align-items: center;
-    }
-    .search-wrap { position: relative; flex: 1; min-width: 180px; }
-    .search-wrap svg {
-      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-      width: 14px; height: 14px; stroke: var(--text-muted); fill: none; pointer-events: none;
-    }
-    .search-wrap input { padding-left: 32px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-    .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
-    .filter-pill {
-      display: flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-      cursor: pointer; border: 1.5px solid var(--border);
-      background: var(--surface); color: var(--text-muted); transition: all .15s;
-    }
-    .filter-pill svg { width: 12px; height: 12px; stroke: currentColor; fill: none; flex-shrink: 0; }
-    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    /* ── ENTRIES ── */
+    .entry-list { display: flex; flex-direction: column; gap: 3px; }
 
-    /* Entries grouped by year */
-    .year-group { margin-bottom: 28px; }
-    .year-heading {
-      font-size: 12px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .8px; color: var(--text-muted);
-      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-    }
-    .year-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-    .entry-list { display: flex; flex-direction: column; gap: 2px; }
     .entry-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px; border-radius: 10px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: var(--radius);
       background: var(--surface); border: 1px solid var(--border);
-      transition: background .1s;
+      transition: background .1s; cursor: default;
     }
     .entry-row:hover { background: var(--surface2); }
 
-    .entry-title { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; }
-    .entry-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .entry-title {
+      flex: 1; font-size: 16px; font-weight: 600; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
     .cat-badge {
-      display: flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 12px;
-      font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 11px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
     }
-    .cat-badge svg { width: 11px; height: 11px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .cat-badge svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
     .del-btn {
       background: none; border: none; cursor: pointer;
-      color: var(--text-muted); padding: 4px; border-radius: 6px;
+      color: var(--text-muted); padding: 6px; border-radius: 8px;
       display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
     }
     .del-btn:hover { background: #ff5c7220; color: var(--danger); }
-    .del-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+    .del-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
     .empty-state {
-      text-align: center; padding: 60px 24px; color: var(--text-muted);
+      text-align: center; padding: 64px 24px; color: var(--text-muted);
     }
-    .empty-state svg { width: 36px; height: 36px; stroke: var(--border); fill: none; display: block; margin: 0 auto 12px; }
-    .empty-state p { font-size: 15px; }
+    .empty-state svg { width: 40px; height: 40px; stroke: var(--border); fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; }
+    .empty-state p { font-size: 16px; }
 
+    /* ── AUTH ── */
+    .auth-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 13px; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      transition: all .15s; font-family: inherit; white-space: nowrap; flex-shrink: 0;
+    }
+    .auth-btn:hover { border-color: var(--accent); color: var(--text); }
+    .auth-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .auth-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0;
+    }
+    .owner-only { display: none; }
+    .owner-only.visible { display: flex; }
+    button.owner-only.visible { display: flex; }
+
+    /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--accent); color: #fff;
-      padding: 10px 18px; border-radius: 10px;
-      font-size: 14px; font-weight: 600;
-      opacity: 0; transform: translateY(8px);
-      transition: all .25s; pointer-events: none; z-index: 999;
+      position: fixed; bottom: 28px; right: 20px; left: 20px; max-width: 320px; margin: 0 auto;
+      background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; text-align: center;
+      opacity: 0; transform: translateY(10px); transition: all .25s;
+      pointer-events: none; z-index: 999;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-icon">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>
     </div>
-    <div style="display:flex;align-items:baseline;gap:4px">
-      <h1>Media Tracker</h1>
-      <span class="year-tag" id="yearTag"></span>
-    </div>
+    <span class="logo-text">Media Tracker</span>
   </div>
   <div class="header-right">
-    <div class="sync-dot" id="syncDot" title="Sync status"></div>
+    <div class="sync-dot syncing" id="syncDot"></div>
+    <!-- Auth button -->
+    <button class="auth-btn" id="authBtn" onclick="handleAuthClick()">
+      <svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span id="authBtnLabel">Sign in</span>
+    </button>
+    <!-- ⋮ menu -->
     <div class="menu-wrap">
-      <button class="btn-icon" id="menuBtn" title="More options">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+      <button class="btn-icon" id="menuBtn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
       </button>
       <div class="dropdown" id="menuDropdown">
         <button class="dropdown-item" onclick="exportCSV()">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
         </button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="toggleForm()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Log Entry
+    <!-- Add entry — owner only -->
+    <button class="btn btn-primary btn-add owner-only" id="addEntryBtn" onclick="toggleForm()">
+      <svg viewBox="0 0 24 24" class="btn-add"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span class="btn-add-label">Log Entry</span>
     </button>
   </div>
 </header>
 
 <div class="container">
 
-  <div class="stats" id="stats"></div>
-
-  <!-- Add form -->
-  <div class="card" id="addForm" style="display:none">
-    <div class="card-title">New Entry</div>
+  <!-- ADD FORM -->
+  <div class="add-form" id="addForm">
+    <div class="form-title">New Entry</div>
     <div class="form-row">
       <div>
         <label>Title</label>
@@ -290,8 +342,8 @@
     </div>
     <label>Category</label>
     <div class="cat-pills" id="typePills"></div>
-    <div class="custom-input-wrap" id="customInputWrap">
-      <input id="customCatInput" type="text" placeholder="Category name…" />
+    <div class="custom-row" id="customRow">
+      <input id="customCatInput" type="text" placeholder="Category name…" style="flex:1" />
       <button class="btn btn-primary" onclick="confirmCustomCat()">Add</button>
       <button class="btn btn-ghost" onclick="cancelCustomCat()">Cancel</button>
     </div>
@@ -301,22 +353,50 @@
     </div>
   </div>
 
-  <!-- Filter + search -->
-  <div class="filter-bar">
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search titles…" oninput="renderEntries()" />
-    </div>
-    <div class="filter-pills" id="filterPills"></div>
+  <!-- YEAR NAV -->
+  <div class="year-nav">
+    <button class="year-nav-btn" onclick="changeYear(-1)">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="year-display" id="yearDisplay"></div>
+    <button class="year-nav-btn" onclick="changeYear(1)" id="nextYearBtn">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </div>
 
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <!-- Category filter dropdown -->
+    <div class="cat-filter-wrap menu-wrap">
+      <button class="cat-filter-btn" id="catFilterBtn">
+        <svg id="catFilterIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span id="catFilterLabel">All Categories</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dropdown" id="catDropdown" style="min-width:200px"></div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
+      <button class="btn-icon" id="searchToggle">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-line" id="statsLine"></div>
+
+  <!-- ENTRIES -->
   <div id="entriesList"></div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── Firebase ──────────────────────────────────────────────
+  // ── Firebase ─────────────────────────────────────────────
   const firebaseConfig = {
     apiKey: "AIzaSyArOMqSQL04Dd7ff_8g_G9872tXO9XkiAc",
     authDomain: "media-tracker-a00cf.firebaseapp.com",
@@ -326,11 +406,62 @@
     appId: "1:839766001354:web:4520dfe872f4039aac9633"
   };
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const col = db.collection('entries');
+  const db   = firebase.firestore();
+  const auth = firebase.auth();
+  const col  = db.collection('entries');
 
-  // ── SVG icons ─────────────────────────────────────────────
-  const ICONS = {
+  // ── Owner config ──────────────────────────────────────────
+  const OWNER_EMAIL = 'gabriel.jacobi@gmail.com';
+  let isOwner = false;
+
+  // ── Auth state ────────────────────────────────────────────
+  auth.onAuthStateChanged(user => {
+    isOwner = !!(user && user.email === OWNER_EMAIL);
+    updateAuthUI(user);
+    renderAll();
+  });
+
+  function updateAuthUI(user) {
+    const btn   = document.getElementById('authBtn');
+    const label = document.getElementById('authBtnLabel');
+    const icon  = document.getElementById('authBtnIcon');
+    const addBtn = document.getElementById('addEntryBtn');
+
+    if (user) {
+      label.textContent = isOwner ? 'Signed in' : user.displayName || 'Signed in';
+      if (user.photoURL) {
+        icon.outerHTML = `<img src="${user.photoURL}" class="auth-avatar" id="authBtnIcon" />`;
+      }
+      if (isOwner) {
+        addBtn.classList.add('visible');
+        btn.title = 'Sign out';
+      }
+    } else {
+      label.textContent = 'Sign in';
+      addBtn.classList.remove('visible');
+      // restore icon if it was replaced by avatar
+      const imgEl = document.getElementById('authBtnIcon');
+      if (imgEl && imgEl.tagName === 'IMG') {
+        imgEl.outerHTML = `<svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      }
+    }
+  }
+
+  function handleAuthClick() {
+    const user = auth.currentUser;
+    if (user) {
+      if (confirm('Sign out?')) auth.signOut();
+    } else {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(err => {
+        showToast('Sign-in failed. Check popup blocker.');
+        console.error(err);
+      });
+    }
+  }
+
+  // ── Icons ─────────────────────────────────────────────────
+  const IC = {
     movies:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`,
     tv:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="15" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>`,
     book:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
@@ -341,42 +472,49 @@
     music:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
     tag:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
     list:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+    check:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
   };
 
   // ── Built-in categories ───────────────────────────────────
   const BUILT_IN = [
-    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: ICONS.movies },
-    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: ICONS.tv },
-    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: ICONS.book },
-    { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: ICONS.gamepad },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: ICONS.headphones },
-    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: ICONS.mic },
-    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: ICONS.scroll },
-    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: ICONS.music },
+    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movies },
+    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv },
+    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.book },
+    { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: IC.gamepad },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: IC.headphones },
+    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: IC.mic },
+    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.scroll },
+    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: IC.music },
   ];
 
   // ── State ─────────────────────────────────────────────────
-  let entries = [];
-  let customCats = JSON.parse(localStorage.getItem('customCats') || '[]');
-  let selectedCat = BUILT_IN[0].id;
+  let entries      = [];
+  let customCats   = JSON.parse(localStorage.getItem('customCats') || '[]');
+  let selectedCat  = BUILT_IN[0].id;
   let activeFilter = 'All';
+  let selectedYear = new Date().getFullYear();
+  let searchOpen   = false;
 
   function allCats() {
-    return [...BUILT_IN, ...customCats.map(c => ({ id: c, label: c, color: '#8888aa', icon: ICONS.tag }))];
+    return [...BUILT_IN, ...customCats.map(c => ({ id: c, label: c, color: '#8888aa', icon: IC.tag }))];
   }
   function catMeta(id) {
-    return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: ICONS.tag };
+    return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: IC.tag };
+  }
+  function getYear(e) {
+    if (e.year) return parseInt(e.year);
+    if (e.date) return parseInt(e.date.split('-')[0]);
+    return 0;
   }
 
-  // ── Init ──────────────────────────────────────────────────
-  document.getElementById('yearTag').textContent = new Date().getFullYear();
-  document.getElementById('inputYear').value = new Date().getFullYear();
+  // ── Boot ──────────────────────────────────────────────────
+  document.getElementById('yearDisplay').textContent = selectedYear;
+  document.getElementById('inputYear').value = selectedYear;
   buildTypePills();
-  buildFilterPills();
+  buildCatDropdown();
+  updateNextYearBtn();
 
-  function setSyncStatus(state) {
-    document.getElementById('syncDot').className = 'sync-dot ' + state;
-  }
+  function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
 
   setSyncStatus('syncing');
   col.orderBy('createdAt', 'desc').onSnapshot(
@@ -388,36 +526,115 @@
     err => { setSyncStatus('error'); console.error(err); }
   );
 
-  // ── Pill builders ─────────────────────────────────────────
+  // ── Year nav ──────────────────────────────────────────────
+  function changeYear(delta) {
+    const next = selectedYear + delta;
+    if (next > new Date().getFullYear()) return;
+    selectedYear = next;
+    document.getElementById('yearDisplay').textContent = selectedYear;
+    document.getElementById('inputYear').value = selectedYear;
+    updateNextYearBtn();
+    renderAll();
+  }
+  function updateNextYearBtn() {
+    const btn = document.getElementById('nextYearBtn');
+    btn.style.opacity = selectedYear >= new Date().getFullYear() ? '.3' : '1';
+    btn.style.pointerEvents = selectedYear >= new Date().getFullYear() ? 'none' : 'auto';
+  }
+
+  // ── Category filter dropdown ──────────────────────────────
+  function buildCatDropdown() {
+    const dd = document.getElementById('catDropdown');
+    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...allCats()];
+    dd.innerHTML = cats.map(c => `
+      <button class="dropdown-item${c.id === activeFilter ? ' selected' : ''}" onclick="selectCatFilter('${c.id}')">
+        ${c.icon}
+        ${c.label}
+        ${c.id === activeFilter ? `<span style="margin-left:auto">${IC.check}</span>` : ''}
+      </button>
+    `).join('');
+  }
+
+  function selectCatFilter(id) {
+    activeFilter = id;
+    const meta = id === 'All' ? { label: 'All Categories', icon: IC.list, color: null } : catMeta(id);
+    document.getElementById('catFilterLabel').textContent = meta.label;
+    const iconEl = document.getElementById('catFilterIcon');
+    const tmp = document.createElement('div');
+    tmp.innerHTML = meta.icon;
+    const newSvg = tmp.firstChild;
+    newSvg.setAttribute('id', 'catFilterIcon');
+    newSvg.setAttribute('width', '15');
+    newSvg.setAttribute('height', '15');
+    iconEl.replaceWith(newSvg);
+    closeCatDropdown();
+    buildCatDropdown();
+    renderEntries();
+  }
+
+  document.getElementById('catFilterBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const dd = document.getElementById('catDropdown');
+    const btn = document.getElementById('catFilterBtn');
+    const isOpen = dd.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) { dd.classList.add('open'); btn.classList.add('open'); }
+  });
+  function closeCatDropdown() {
+    document.getElementById('catDropdown').classList.remove('open');
+    document.getElementById('catFilterBtn').classList.remove('open');
+  }
+
+  // ── Search toggle ─────────────────────────────────────────
+  document.getElementById('searchToggle').addEventListener('click', () => {
+    searchOpen = !searchOpen;
+    const inp = document.getElementById('searchInput');
+    inp.classList.toggle('open', searchOpen);
+    if (searchOpen) { inp.focus(); }
+    else { inp.value = ''; renderEntries(); }
+  });
+
+  // ── ⋮ menu ────────────────────────────────────────────────
+  document.getElementById('menuBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const dd = document.getElementById('menuDropdown');
+    const isOpen = dd.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) dd.classList.add('open');
+  });
+
+  function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+    document.getElementById('catFilterBtn').classList.remove('open');
+  }
+  document.addEventListener('click', closeAllDropdowns);
+
+  // ── Form ──────────────────────────────────────────────────
+  function toggleForm() {
+    const form = document.getElementById('addForm');
+    const open = form.classList.contains('open');
+    form.classList.toggle('open', !open);
+    if (!open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
+  }
+
   function buildTypePills() {
     const wrap = document.getElementById('typePills');
     wrap.innerHTML = allCats().map(c => {
-      const isActive = c.id === selectedCat;
-      const style = isActive ? `background:${c.color};border-color:${c.color}` : '';
-      return `<div class="cat-pill${isActive ? ' active' : ''}" data-cat="${c.id}" style="${style}">${c.icon} ${c.label}</div>`;
-    }).join('') + `<div class="cat-pill add-custom" id="addCustomBtn">${ICONS.tag} Custom…</div>`;
+      const active = c.id === selectedCat;
+      return `<div class="cat-pill${active ? ' active' : ''}" data-cat="${c.id}"
+        style="${active ? `background:${c.color};border-color:${c.color}` : ''}">${c.icon} ${c.label}</div>`;
+    }).join('') +
+    `<div class="cat-pill add-pill" id="addCustomBtn">${IC.tag} Custom…</div>`;
 
-    wrap.querySelectorAll('.cat-pill[data-cat]').forEach(pill => {
-      pill.addEventListener('click', () => { selectedCat = pill.dataset.cat; buildTypePills(); });
-    });
+    wrap.querySelectorAll('.cat-pill[data-cat]').forEach(p =>
+      p.addEventListener('click', () => { selectedCat = p.dataset.cat; buildTypePills(); })
+    );
     document.getElementById('addCustomBtn').addEventListener('click', () => {
-      document.getElementById('customInputWrap').classList.add('visible');
+      document.getElementById('customRow').classList.add('open');
       document.getElementById('customCatInput').focus();
     });
   }
 
-  function buildFilterPills() {
-    const wrap = document.getElementById('filterPills');
-    const cats = [{ id: 'All', label: 'All', color: null, icon: ICONS.list }, ...allCats()];
-    wrap.innerHTML = cats.map(c =>
-      `<div class="filter-pill${c.id === activeFilter ? ' active' : ''}" data-filter="${c.id}">${c.icon} ${c.label}</div>`
-    ).join('');
-    wrap.querySelectorAll('.filter-pill').forEach(p => {
-      p.addEventListener('click', () => { activeFilter = p.dataset.filter; buildFilterPills(); renderEntries(); });
-    });
-  }
-
-  // ── Custom category ───────────────────────────────────────
   function confirmCustomCat() {
     const val = document.getElementById('customCatInput').value.trim();
     if (!val) return;
@@ -428,10 +645,10 @@
     selectedCat = val;
     cancelCustomCat();
     buildTypePills();
-    buildFilterPills();
+    buildCatDropdown();
   }
   function cancelCustomCat() {
-    document.getElementById('customInputWrap').classList.remove('visible');
+    document.getElementById('customRow').classList.remove('open');
     document.getElementById('customCatInput').value = '';
   }
   document.getElementById('customCatInput').addEventListener('keydown', e => {
@@ -439,25 +656,17 @@
     if (e.key === 'Escape') cancelCustomCat();
   });
 
-  // ── Form ──────────────────────────────────────────────────
-  function toggleForm() {
-    const form = document.getElementById('addForm');
-    const open = form.style.display !== 'none';
-    form.style.display = open ? 'none' : 'block';
-    if (!open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
-  }
-
   async function addEntry() {
     const title = document.getElementById('inputTitle').value.trim();
-    const year  = parseInt(document.getElementById('inputYear').value) || new Date().getFullYear();
+    const year  = parseInt(document.getElementById('inputYear').value) || selectedYear;
     if (!title) { showToast('Please enter a title.'); return; }
     setSyncStatus('syncing');
     try {
       await col.add({ title, year, type: selectedCat, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       document.getElementById('inputTitle').value = '';
-      document.getElementById('inputYear').value = new Date().getFullYear();
+      document.getElementById('inputYear').value = selectedYear;
       toggleForm();
-      showToast('Entry saved!');
+      showToast('Saved!');
     } catch(e) {
       setSyncStatus('error');
       showToast('Error saving — check connection.');
@@ -469,28 +678,23 @@
   // ── Delete ────────────────────────────────────────────────
   async function deleteEntry(id) {
     if (!confirm('Delete this entry?')) return;
-    setSyncStatus('syncing');
     try { await col.doc(id).delete(); showToast('Deleted.'); }
-    catch(e) { setSyncStatus('error'); showToast('Error deleting.'); }
+    catch(e) { showToast('Error deleting.'); }
   }
 
   // ── Render ────────────────────────────────────────────────
-  function renderAll() { renderStats(); renderEntries(); buildFilterPills(); }
+  function renderAll() { renderStats(); renderEntries(); buildCatDropdown(); }
 
   function renderStats() {
-    const el = document.getElementById('stats');
-    let html = `<div class="stat-chip">${ICONS.list}<span class="n">${entries.length}</span> total</div>`;
+    const yearEntries = entries.filter(e => getYear(e) === selectedYear);
+    const el = document.getElementById('statsLine');
+    if (!yearEntries.length) { el.innerHTML = ''; return; }
+    let html = `<span class="total">${yearEntries.length} ${yearEntries.length === 1 ? 'entry' : 'entries'}</span>`;
     allCats().forEach(c => {
-      const n = entries.filter(e => e.type === c.id).length;
-      if (n > 0) html += `<div class="stat-chip" style="color:${c.color}">${c.icon}<span class="n">${n}</span> ${c.label}</div>`;
+      const n = yearEntries.filter(e => e.type === c.id).length;
+      if (n > 0) html += `<span style="color:${c.color}">${c.icon} ${n} ${c.label}</span>`;
     });
-    document.getElementById('stats').innerHTML = html;
-  }
-
-  function getYear(e) {
-    if (e.year) return parseInt(e.year);
-    if (e.date) return parseInt(e.date.split('-')[0]);
-    return 0;
+    el.innerHTML = html;
   }
 
   function renderEntries() {
@@ -498,40 +702,36 @@
     const el = document.getElementById('entriesList');
 
     let filtered = entries.filter(e => {
-      const matchCat = activeFilter === 'All' || e.type === activeFilter;
+      const matchYear = getYear(e) === selectedYear;
+      const matchCat  = activeFilter === 'All' || e.type === activeFilter;
       const matchSearch = !search || (e.title || '').toLowerCase().includes(search);
-      return matchCat && matchSearch;
+      return matchYear && matchCat && matchSearch;
     });
 
     if (!filtered.length) {
       el.innerHTML = `<div class="empty-state">
-        ${ICONS.list}
-        <p>${entries.length === 0 ? 'No entries yet — log your first!' : 'No entries match your search.'}</p>
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <p>${entries.filter(e => getYear(e) === selectedYear).length === 0
+          ? `Nothing logged for ${selectedYear} yet.`
+          : 'No entries match your filter.'}</p>
       </div>`;
       return;
     }
 
-    // Group by year, descending
-    const byYear = {};
-    filtered.forEach(e => { const y = getYear(e); (byYear[y] = byYear[y] || []).push(e); });
-    const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+    // Sort alphabetically by title
+    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 
-    el.innerHTML = years.map(y => {
-      const rows = byYear[y].map(e => {
-        const meta = catMeta(e.type);
-        return `<div class="entry-row">
-          <div class="entry-title"><span>${escHtml(e.title)}</span></div>
-          <div class="cat-badge" style="background:${meta.color}1a;color:${meta.color}">${meta.icon} ${meta.label}</div>
-          <button class="del-btn" onclick="deleteEntry('${e.id}')" title="Delete">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>`;
-      }).join('');
-      return `<div class="year-group">
-        <div class="year-heading">${y || 'Unknown'}</div>
-        <div class="entry-list">${rows}</div>
+    el.innerHTML = `<div class="entry-list">${filtered.map(e => {
+      const meta = catMeta(e.type);
+      // isOwner is a closure variable from auth state
+      return `<div class="entry-row">
+        <div class="entry-title">${escHtml(e.title)}</div>
+        <div class="cat-badge" style="background:${meta.color}1a;color:${meta.color}">${meta.icon} ${meta.label}</div>
+        <button class="del-btn owner-only${isOwner ? ' visible' : ''}" onclick="deleteEntry('${e.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>`;
-    }).join('');
+    }).join('')}</div>`;
   }
 
   function escHtml(s) {
@@ -540,23 +740,15 @@
 
   // ── Export ────────────────────────────────────────────────
   function exportCSV() {
-    closeMenu();
+    closeAllDropdowns();
     if (!entries.length) { showToast('Nothing to export yet.'); return; }
     const rows = entries.map(e => [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type].join(','));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['Title,Year,Category\n' + rows.join('\n')], { type: 'text/csv' }));
-    a.download = `media-log-${new Date().getFullYear()}.csv`;
+    a.download = `media-log-${selectedYear}.csv`;
     a.click();
     showToast('CSV exported!');
   }
-
-  // ── Menu ──────────────────────────────────────────────────
-  document.getElementById('menuBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    document.getElementById('menuDropdown').classList.toggle('open');
-  });
-  document.addEventListener('click', closeMenu);
-  function closeMenu() { document.getElementById('menuDropdown').classList.remove('open'); }
 
   // ── Toast ─────────────────────────────────────────────────
   function showToast(msg) {
