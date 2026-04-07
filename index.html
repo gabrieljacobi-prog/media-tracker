@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Media Tracker</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -22,15 +22,20 @@
       --radius: 12px;
     }
 
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       padding-bottom: 60px;
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
     }
 
-    svg { display: block; }
+    svg { display: block; flex-shrink: 0; }
 
     /* ── HEADER ── */
     header {
@@ -43,11 +48,10 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      overflow: hidden;
-      min-width: 0;
+      gap: 10px;
     }
 
-    .logo { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; flex-shrink: 1; }
+    .logo { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
     .logo-icon {
       width: 34px; height: 34px; background: var(--accent);
       border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -55,7 +59,7 @@
     .logo-icon svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
     .sync-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -64,33 +68,34 @@
     .sync-dot.synced  { background: #52c41a; }
     .sync-dot.syncing { background: #faad14; animation: blink 1s infinite; }
     .sync-dot.error   { background: var(--danger); }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
 
     /* ── BUTTONS ── */
+    button { touch-action: manipulation; }
+
     .btn {
       border: none; cursor: pointer; font-family: inherit;
       display: flex; align-items: center; justify-content: center; gap: 6px;
       transition: opacity .15s; border-radius: 10px;
-      font-size: 14px; font-weight: 600;
+      font-size: 15px; font-weight: 600; -webkit-tap-highlight-color: transparent;
     }
     .btn:hover { opacity: .82; }
     .btn-primary { background: var(--accent); color: #fff; padding: 10px 16px; }
     .btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 16px; }
     .btn-icon {
       background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text-muted); padding: 10px; border-radius: 10px;
+      color: var(--text-muted); padding: 9px 10px; border-radius: 10px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: opacity .15s; flex-shrink: 0;
+      transition: opacity .15s; -webkit-tap-highlight-color: transparent;
     }
     .btn-icon:hover { opacity: .8; }
     .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .btn-add svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
-    .btn-add-label { } /* shown on desktop */
-    @media (max-width: 480px) {
+    .btn-add-label {}
+    @media (max-width: 400px) {
       .btn-add-label { display: none; }
-      .btn-primary.btn-add { padding: 10px 12px; border-radius: 10px; }
-      .logo-text { font-size: 16px; }
+      .btn-primary.btn-add { padding: 10px 11px; }
     }
 
     /* ── DROPDOWN ── */
@@ -98,122 +103,124 @@
     .dropdown {
       display: none; position: absolute; right: 0; top: calc(100% + 8px);
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 6px; min-width: 180px;
-      z-index: 200; box-shadow: 0 12px 32px #0009;
+      border-radius: var(--radius); padding: 6px; min-width: 190px;
+      z-index: 200; box-shadow: 0 12px 32px #000a;
     }
     .dropdown.open { display: block; }
     .dropdown-item {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: 8px; font-size: 14px;
+      padding: 11px 14px; border-radius: 8px; font-size: 15px;
       color: var(--text-muted); cursor: pointer; transition: background .12s;
-      border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+      border: none; background: none; width: 100%; text-align: left;
+      font-family: inherit; -webkit-tap-highlight-color: transparent;
     }
     .dropdown-item:hover, .dropdown-item.selected { background: var(--surface2); color: var(--text); }
     .dropdown-item.selected { color: var(--accent); }
-    .dropdown-item svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .dropdown-sep { height: 1px; background: var(--border); margin: 4px 0; }
+    .dropdown-item.danger { color: var(--danger); }
+    .dropdown-item.danger:hover { background: #ff5c7215; }
+    .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
 
-    /* ── MAIN LAYOUT ── */
+    /* ── MAIN ── */
     .container { max-width: 700px; margin: 0 auto; padding: 0 16px; }
 
+    /* ── AUTH ERROR ── */
+    .auth-error {
+      background: #ff5c7215; border: 1px solid var(--danger);
+      border-radius: 10px; padding: 12px 16px; margin-top: 16px;
+      font-size: 14px; color: var(--danger); line-height: 1.5; display: none;
+    }
+    .auth-error.visible { display: block; }
+    .auth-error code { background: #ff5c7225; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
     /* ── YEAR NAV ── */
-    .year-nav {
-      display: flex; align-items: center; justify-content: center; gap: 16px;
-      padding: 20px 0 16px;
+    .year-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 0 14px; gap: 10px;
     }
-    .year-nav-btn {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 14px; cursor: pointer;
-      color: var(--text-muted); display: flex; align-items: center;
-      transition: all .15s;
+    .year-dropdown-wrap { position: relative; }
+    .year-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; color: var(--text); padding: 4px 0;
+      -webkit-tap-highlight-color: transparent;
     }
-    .year-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .year-nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .year-display {
-      font-size: 28px; font-weight: 800; letter-spacing: -1px;
-      min-width: 90px; text-align: center;
-    }
+    .year-label { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+    .year-btn .chevron { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+    .year-btn.open .chevron { transform: rotate(180deg); }
+    .year-dropdown { left: 0; right: auto; min-width: 130px; max-height: 280px; overflow-y: auto; }
+    .year-dropdown .dropdown-item { font-size: 16px; font-weight: 600; justify-content: space-between; }
+
+    /* ── ADD ENTRY BUTTON in year bar ── */
+    .owner-only { display: none !important; }
+    .owner-only.visible { display: flex !important; }
 
     /* ── TOOLBAR ── */
-    .toolbar {
-      display: flex; align-items: center; gap: 10px;
-      padding-bottom: 16px;
-    }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; }
 
-    .cat-filter-wrap { position: relative; flex-shrink: 0; }
+    .cat-filter-wrap { position: relative; }
     .cat-filter-btn {
       display: flex; align-items: center; gap: 8px;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 14px; cursor: pointer;
+      border-radius: 10px; padding: 10px 13px; cursor: pointer;
       font-size: 14px; font-weight: 600; color: var(--text-muted);
       transition: all .15s; font-family: inherit; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
     }
-    .cat-filter-btn:hover, .cat-filter-btn.active { border-color: var(--accent); color: var(--text); }
-    .cat-filter-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .cat-filter-btn .chevron { width: 14px; height: 14px; opacity: .6; transition: transform .2s; }
+    .cat-filter-btn:hover, .cat-filter-btn.open { border-color: var(--accent); color: var(--text); }
+    .cat-filter-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .cat-filter-btn .chevron { width: 14px; height: 14px; opacity: .5; transition: transform .2s; }
     .cat-filter-btn.open .chevron { transform: rotate(180deg); }
 
-    /* search */
     .search-wrap { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; overflow: hidden; }
     .search-input-field {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-size: 14px;
-      padding: 10px 14px; outline: none; font-family: inherit;
+      border-radius: 10px; color: var(--text); font-size: 16px;
+      padding: 10px 13px; outline: none; font-family: inherit;
       max-width: 0; min-width: 0; width: 100%;
       opacity: 0; transition: max-width .25s ease, opacity .2s, border-color .15s;
-      pointer-events: none; box-sizing: border-box; flex-shrink: 1;
+      pointer-events: none; -webkit-appearance: none;
     }
-    .search-input-field.open {
-      max-width: 200px; opacity: 1; pointer-events: all;
-    }
-    @media (max-width: 420px) {
-      .search-input-field.open { max-width: 140px; }
-    }
+    .search-input-field.open { max-width: 200px; opacity: 1; pointer-events: all; }
+    @media (max-width: 400px) { .search-input-field.open { max-width: 140px; } }
     .search-input-field:focus { border-color: var(--accent); }
 
     /* ── STATS ── */
     .stats-line {
-      font-size: 13px; color: var(--text-muted);
-      padding-bottom: 14px; display: flex; gap: 12px; flex-wrap: wrap;
+      font-size: 14px; color: var(--text-muted);
+      padding-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
     }
     .stats-line span { display: flex; align-items: center; gap: 5px; }
-    .stats-line svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .stats-line svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .stats-line .total { font-weight: 700; color: var(--text); }
 
     /* ── ADD FORM ── */
     .add-form {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
-      display: none;
+      border-radius: var(--radius); padding: 20px; margin-bottom: 20px; display: none;
     }
     .add-form.open { display: block; }
-    .form-title {
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px;
-    }
-    label {
-      font-size: 12px; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 7px;
-    }
+    .form-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px; }
+    label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 7px; }
     input[type=text], input[type=number] {
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 10px; color: var(--text); font-size: 16px;
       padding: 12px 14px; outline: none; transition: border-color .15s;
-      font-family: inherit; width: 100%;
+      font-family: inherit; width: 100%; -webkit-appearance: none;
     }
     input:focus { border-color: var(--accent); }
-    .form-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 420px) { .form-row { grid-template-columns: 1fr; } }
+    .form-row { display: grid; grid-template-columns: 1fr 110px; gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
 
-    /* category pills in form */
     .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .cat-pill {
       display: flex; align-items: center; gap: 7px;
       padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600;
       cursor: pointer; border: 2px solid transparent;
       background: var(--surface2); color: var(--text-muted); transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .cat-pill.active { color: #fff; }
     .cat-pill.add-pill { border-style: dashed; border-color: var(--border); }
     .cat-pill.add-pill:hover { border-color: var(--accent); color: var(--accent); }
@@ -225,81 +232,50 @@
 
     .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-    /* ── ENTRIES ── */
-    .entry-list { display: flex; flex-direction: column; gap: 3px; }
+    /* ── GROUPED ENTRIES ── */
+    .cat-group { margin-bottom: 24px; }
+    .cat-group-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+      color: var(--text-muted); margin-bottom: 8px;
+    }
+    .cat-group-header svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .cat-group-header .cat-count {
+      margin-left: auto; font-size: 12px; font-weight: 600;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1px 8px;
+    }
 
+    .entry-list { display: flex; flex-direction: column; gap: 3px; }
     .entry-row {
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px; border-radius: var(--radius);
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 15px; border-radius: 10px;
       background: var(--surface); border: 1px solid var(--border);
-      transition: background .1s; cursor: default;
+      transition: background .1s;
     }
     .entry-row:hover { background: var(--surface2); }
-
-    .entry-title {
-      flex: 1; font-size: 16px; font-weight: 600; min-width: 0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .cat-badge {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 11px; border-radius: 20px;
-      font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
-    }
-    .cat-badge svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-
+    .entry-title { flex: 1; font-size: 16px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .del-btn {
       background: none; border: none; cursor: pointer;
-      color: var(--text-muted); padding: 6px; border-radius: 8px;
+      color: var(--text-muted); padding: 5px; border-radius: 7px;
       display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     .del-btn:hover { background: #ff5c7220; color: var(--danger); }
     .del-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-    .empty-state {
-      text-align: center; padding: 64px 24px; color: var(--text-muted);
-    }
-    .empty-state svg { width: 40px; height: 40px; stroke: var(--border); fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; }
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--text-muted); }
+    .empty-state svg { width: 38px; height: 38px; stroke: var(--border); fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; stroke-linecap: round; stroke-linejoin: round; }
     .empty-state p { font-size: 16px; }
-
-    /* ── AUTH ── */
-    .auth-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 8px 11px; cursor: pointer;
-      font-size: 13px; font-weight: 600; color: var(--text-muted);
-      transition: all .15s; font-family: inherit; white-space: nowrap; flex-shrink: 0;
-    }
-    .auth-btn:hover { border-color: var(--accent); color: var(--text); }
-    .auth-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
-    .auth-btn-label { }
-    @media (max-width: 480px) { .auth-btn-label { display: none; } }
-    .auth-avatar {
-      width: 28px; height: 28px; border-radius: 50%;
-      object-fit: cover; flex-shrink: 0;
-    }
-    .owner-only { display: none; }
-    .owner-only.visible { display: flex; }
-    button.owner-only.visible { display: flex; }
-
-    /* ── AUTH ERROR BANNER ── */
-    .auth-error {
-      background: #ff5c7215; border: 1px solid var(--danger);
-      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
-      font-size: 13px; color: var(--danger); line-height: 1.5; display: none;
-    }
-    .auth-error.visible { display: block; }
-    .auth-error code { background: #ff5c7225; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
 
     /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 28px; right: 20px; left: 20px; max-width: 320px; margin: 0 auto;
-      background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 12px;
-      font-size: 15px; font-weight: 600; text-align: center;
-      opacity: 0; transform: translateY(10px); transition: all .25s;
-      pointer-events: none; z-index: 999;
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(10px);
+      background: var(--accent); color: #fff; padding: 12px 22px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; white-space: nowrap;
+      opacity: 0; transition: all .25s; pointer-events: none; z-index: 999;
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -314,17 +290,18 @@
   </div>
   <div class="header-right">
     <div class="sync-dot syncing" id="syncDot"></div>
-    <!-- Auth button -->
-    <button class="auth-btn" id="authBtn" onclick="handleAuthClick()">
-      <svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span id="authBtnLabel" class="auth-btn-label">Sign in</span>
-    </button>
-    <!-- ⋮ menu -->
+    <!-- Kebab menu -->
     <div class="menu-wrap">
       <button class="btn-icon" id="menuBtn">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
       </button>
       <div class="dropdown" id="menuDropdown">
+        <!-- Auth item — updated dynamically -->
+        <button class="dropdown-item" id="authMenuItem" onclick="handleAuthClick()">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span id="authMenuLabel">Sign in</span>
+        </button>
+        <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="exportCSV()">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
@@ -340,6 +317,8 @@
 </header>
 
 <div class="container">
+
+  <div class="auth-error" id="authError"></div>
 
   <!-- ADD FORM -->
   <div class="add-form" id="addForm">
@@ -367,33 +346,27 @@
     </div>
   </div>
 
-  <!-- Auth error banner -->
-  <div class="auth-error" id="authError"></div>
-
-  <!-- YEAR NAV -->
-  <div class="year-nav">
-    <button class="year-nav-btn" onclick="changeYear(-1)">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div class="year-display" id="yearDisplay"></div>
-    <button class="year-nav-btn" onclick="changeYear(1)" id="nextYearBtn">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
+  <!-- YEAR BAR -->
+  <div class="year-bar">
+    <div class="year-dropdown-wrap menu-wrap">
+      <button class="year-btn" id="yearBtn">
+        <span class="year-label" id="yearLabel"></span>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="dropdown year-dropdown" id="yearDropdown"></div>
+    </div>
   </div>
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <!-- Category filter dropdown -->
     <div class="cat-filter-wrap menu-wrap">
       <button class="cat-filter-btn" id="catFilterBtn">
         <svg id="catFilterIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         <span id="catFilterLabel">All Categories</span>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="dropdown" id="catDropdown" style="min-width:200px"></div>
+      <div class="dropdown" id="catDropdown" style="min-width:210px"></div>
     </div>
-
-    <!-- Search -->
     <div class="search-wrap">
       <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
       <button class="btn-icon" id="searchToggle">
@@ -402,10 +375,7 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="stats-line" id="statsLine"></div>
-
-  <!-- ENTRIES -->
   <div id="entriesList"></div>
 
 </div>
@@ -413,7 +383,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── Firebase ─────────────────────────────────────────────
+  // ── Firebase ──────────────────────────────────────────────
   const firebaseConfig = {
     apiKey: "AIzaSyArOMqSQL04Dd7ff_8g_G9872tXO9XkiAc",
     authDomain: "media-tracker-a00cf.firebaseapp.com",
@@ -426,63 +396,6 @@
   const db   = firebase.firestore();
   const auth = firebase.auth();
   const col  = db.collection('entries');
-
-  // ── Owner config ──────────────────────────────────────────
-  const OWNER_EMAIL = 'gabriel.jacobi@gmail.com';
-  let isOwner = false;
-
-  // ── Auth state ────────────────────────────────────────────
-
-  auth.onAuthStateChanged(user => {
-    isOwner = !!(user && user.email === OWNER_EMAIL);
-    updateAuthUI(user);
-    renderAll();
-  });
-
-  function updateAuthUI(user) {
-    const btn   = document.getElementById('authBtn');
-    const label = document.getElementById('authBtnLabel');
-    const icon  = document.getElementById('authBtnIcon');
-    const addBtn = document.getElementById('addEntryBtn');
-
-    if (user) {
-      label.textContent = isOwner ? 'Signed in' : user.displayName || 'Signed in';
-      if (user.photoURL) {
-        icon.outerHTML = `<img src="${user.photoURL}" class="auth-avatar" id="authBtnIcon" />`;
-      }
-      if (isOwner) {
-        addBtn.classList.add('visible');
-        btn.title = 'Sign out';
-      }
-    } else {
-      label.textContent = 'Sign in';
-      addBtn.classList.remove('visible');
-      // restore icon if it was replaced by avatar
-      const imgEl = document.getElementById('authBtnIcon');
-      if (imgEl && imgEl.tagName === 'IMG') {
-        imgEl.outerHTML = `<svg id="authBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-      }
-    }
-  }
-
-  function handleAuthClick() {
-    const user = auth.currentUser;
-    if (user) {
-      if (confirm('Sign out?')) auth.signOut();
-      return;
-    }
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => {
-      console.error(err);
-      if (err.code === 'auth/popup-blocked') {
-        showAuthError('Popup was blocked by your browser. Please allow popups for this site and try again.');
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        // User closed the window — do nothing
-      } else {
-        showAuthError(err.code || err.message || 'Sign-in failed.');
-      }
-    });
-  }
 
   // ── Icons ─────────────────────────────────────────────────
   const IC = {
@@ -497,9 +410,10 @@
     tag:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
     list:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
     check:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    signout:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
   };
 
-  // ── Built-in categories ───────────────────────────────────
+  // ── Categories ────────────────────────────────────────────
   const BUILT_IN = [
     { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movies },
     { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv },
@@ -517,7 +431,8 @@
   let selectedCat  = BUILT_IN[0].id;
   let activeFilter = 'All';
   let selectedYear = new Date().getFullYear();
-  let searchOpen   = false;
+  let isOwner      = false;
+  let currentUser  = null;
 
   function allCats() {
     return [...BUILT_IN, ...customCats.map(c => ({ id: c, label: c, color: '#8888aa', icon: IC.tag }))];
@@ -530,18 +445,22 @@
     if (e.date) return parseInt(e.date.split('-')[0]);
     return 0;
   }
+  function getTimestamp(e) {
+    if (e.createdAt && e.createdAt.toMillis) return e.createdAt.toMillis();
+    if (e.createdAt && e.createdAt.seconds) return e.createdAt.seconds * 1000;
+    return 0;
+  }
 
   // ── Boot ──────────────────────────────────────────────────
-  document.getElementById('yearDisplay').textContent = selectedYear;
+  document.getElementById('yearLabel').textContent = selectedYear;
   document.getElementById('inputYear').value = selectedYear;
   buildTypePills();
   buildCatDropdown();
-  updateNextYearBtn();
 
   function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
-
   setSyncStatus('syncing');
-  col.orderBy('createdAt', 'desc').onSnapshot(
+
+  col.orderBy('createdAt', 'asc').onSnapshot(
     snap => {
       entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setSyncStatus('synced');
@@ -550,30 +469,118 @@
     err => { setSyncStatus('error'); console.error(err); }
   );
 
-  // ── Year nav ──────────────────────────────────────────────
-  function changeYear(delta) {
-    const next = selectedYear + delta;
-    if (next > new Date().getFullYear()) return;
-    selectedYear = next;
-    document.getElementById('yearDisplay').textContent = selectedYear;
-    document.getElementById('inputYear').value = selectedYear;
-    updateNextYearBtn();
-    renderAll();
-  }
-  function updateNextYearBtn() {
-    const btn = document.getElementById('nextYearBtn');
-    btn.style.opacity = selectedYear >= new Date().getFullYear() ? '.3' : '1';
-    btn.style.pointerEvents = selectedYear >= new Date().getFullYear() ? 'none' : 'auto';
+  // ── Auth ──────────────────────────────────────────────────
+  const OWNER_EMAIL = 'gabriel.jacobi@gmail.com';
+
+  const ua = navigator.userAgent;
+  const USE_REDIRECT = /Android/.test(ua) && /Chrome\//.test(ua) && !/Firefox/.test(ua);
+
+  if (USE_REDIRECT) {
+    auth.getRedirectResult().catch(err => {
+      if (err.code) showAuthError(err.code);
+      console.error('Redirect error:', err);
+    });
   }
 
-  // ── Category filter dropdown ──────────────────────────────
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+    isOwner = !!(user && user.email === OWNER_EMAIL);
+    updateAuthUI(user);
+    renderAll();
+  });
+
+  function updateAuthUI(user) {
+    const label   = document.getElementById('authMenuLabel');
+    const menuBtn = document.getElementById('authMenuItem');
+    const addBtn  = document.getElementById('addEntryBtn');
+
+    if (user) {
+      label.textContent = 'Sign out';
+      menuBtn.innerHTML = `${IC.signout} <span>Sign out</span>`;
+      menuBtn.classList.add('danger');
+      if (isOwner) addBtn.classList.add('visible');
+    } else {
+      menuBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span>Sign in with Google</span>`;
+      menuBtn.classList.remove('danger');
+      addBtn.classList.remove('visible');
+    }
+  }
+
+  function handleAuthClick() {
+    closeAllDropdowns();
+    if (currentUser) {
+      if (confirm('Sign out?')) auth.signOut();
+      return;
+    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    if (USE_REDIRECT) {
+      auth.signInWithRedirect(provider).catch(err => {
+        showAuthError(err.code || err.message);
+        console.error(err);
+      });
+    } else {
+      auth.signInWithPopup(provider).catch(err => {
+        console.error(err);
+        if (err.code === 'auth/popup-blocked') {
+          showAuthError('Popup blocked — please allow popups for this site and try again.');
+        } else if (err.code !== 'auth/popup-closed-by-user') {
+          showAuthError(err.code || err.message || 'Sign-in failed.');
+        }
+      });
+    }
+  }
+
+  // ── Kebab menu ────────────────────────────────────────────
+  document.getElementById('menuBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const dd = document.getElementById('menuDropdown');
+    const isOpen = dd.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) dd.classList.add('open');
+  });
+
+  // ── Year dropdown ─────────────────────────────────────────
+  function availableYears() {
+    const years = new Set(entries.map(e => getYear(e)));
+    years.add(new Date().getFullYear());
+    return [...years].filter(y => y > 0).sort((a, b) => b - a);
+  }
+
+  function buildYearDropdown() {
+    const dd = document.getElementById('yearDropdown');
+    const years = availableYears();
+    dd.innerHTML = years.map(y => `
+      <button class="dropdown-item${y === selectedYear ? ' selected' : ''}" onclick="selectYear(${y})">
+        ${y} ${y === selectedYear ? IC.check : ''}
+      </button>
+    `).join('');
+  }
+
+  function selectYear(y) {
+    selectedYear = y;
+    document.getElementById('yearLabel').textContent = y;
+    document.getElementById('inputYear').value = y;
+    closeAllDropdowns();
+    renderAll();
+  }
+
+  document.getElementById('yearBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    buildYearDropdown();
+    const dd = document.getElementById('yearDropdown');
+    const btn = document.getElementById('yearBtn');
+    const isOpen = dd.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) { dd.classList.add('open'); btn.classList.add('open'); }
+  });
+
+  // ── Category filter ───────────────────────────────────────
   function buildCatDropdown() {
     const dd = document.getElementById('catDropdown');
     const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...allCats()];
     dd.innerHTML = cats.map(c => `
       <button class="dropdown-item${c.id === activeFilter ? ' selected' : ''}" onclick="selectCatFilter('${c.id}')">
-        ${c.icon}
-        ${c.label}
+        ${c.icon} ${c.label}
         ${c.id === activeFilter ? `<span style="margin-left:auto">${IC.check}</span>` : ''}
       </button>
     `).join('');
@@ -581,16 +588,15 @@
 
   function selectCatFilter(id) {
     activeFilter = id;
-    const meta = id === 'All' ? { label: 'All Categories', icon: IC.list, color: null } : catMeta(id);
+    const meta = id === 'All' ? { label: 'All Categories', icon: IC.list } : catMeta(id);
     document.getElementById('catFilterLabel').textContent = meta.label;
-    const iconEl = document.getElementById('catFilterIcon');
+    const old = document.getElementById('catFilterIcon');
     const tmp = document.createElement('div');
     tmp.innerHTML = meta.icon;
-    const newSvg = tmp.firstChild;
-    newSvg.setAttribute('id', 'catFilterIcon');
-    newSvg.setAttribute('width', '15');
-    newSvg.setAttribute('height', '15');
-    iconEl.replaceWith(newSvg);
+    const svg = tmp.firstChild;
+    svg.setAttribute('id', 'catFilterIcon');
+    svg.setAttribute('width', '15'); svg.setAttribute('height', '15');
+    old.replaceWith(svg);
     closeCatDropdown();
     buildCatDropdown();
     renderEntries();
@@ -609,36 +615,26 @@
     document.getElementById('catFilterBtn').classList.remove('open');
   }
 
-  // ── Search toggle ─────────────────────────────────────────
+  // ── Search ────────────────────────────────────────────────
   document.getElementById('searchToggle').addEventListener('click', () => {
-    searchOpen = !searchOpen;
     const inp = document.getElementById('searchInput');
-    inp.classList.toggle('open', searchOpen);
-    if (searchOpen) { inp.focus(); }
-    else { inp.value = ''; renderEntries(); }
+    const open = inp.classList.toggle('open');
+    if (open) inp.focus(); else { inp.value = ''; renderEntries(); }
   });
 
-  // ── ⋮ menu ────────────────────────────────────────────────
-  document.getElementById('menuBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    const dd = document.getElementById('menuDropdown');
-    const isOpen = dd.classList.contains('open');
-    closeAllDropdowns();
-    if (!isOpen) dd.classList.add('open');
-  });
-
+  // ── Global close ──────────────────────────────────────────
   function closeAllDropdowns() {
     document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
     document.getElementById('catFilterBtn').classList.remove('open');
+    document.getElementById('yearBtn').classList.remove('open');
   }
   document.addEventListener('click', closeAllDropdowns);
 
   // ── Form ──────────────────────────────────────────────────
   function toggleForm() {
     const form = document.getElementById('addForm');
-    const open = form.classList.contains('open');
-    form.classList.toggle('open', !open);
-    if (!open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
+    const open = form.classList.toggle('open');
+    if (open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
   }
 
   function buildTypePills() {
@@ -647,8 +643,7 @@
       const active = c.id === selectedCat;
       return `<div class="cat-pill${active ? ' active' : ''}" data-cat="${c.id}"
         style="${active ? `background:${c.color};border-color:${c.color}` : ''}">${c.icon} ${c.label}</div>`;
-    }).join('') +
-    `<div class="cat-pill add-pill" id="addCustomBtn">${IC.tag} Custom…</div>`;
+    }).join('') + `<div class="cat-pill add-pill" id="addCustomBtn">${IC.tag} Custom…</div>`;
 
     wrap.querySelectorAll('.cat-pill[data-cat]').forEach(p =>
       p.addEventListener('click', () => { selectedCat = p.dataset.cat; buildTypePills(); })
@@ -707,7 +702,7 @@
   }
 
   // ── Render ────────────────────────────────────────────────
-  function renderAll() { renderStats(); renderEntries(); buildCatDropdown(); }
+  function renderAll() { buildYearDropdown(); renderStats(); renderEntries(); buildCatDropdown(); }
 
   function renderStats() {
     const yearEntries = entries.filter(e => getYear(e) === selectedYear);
@@ -716,7 +711,7 @@
     let html = `<span class="total">${yearEntries.length} ${yearEntries.length === 1 ? 'entry' : 'entries'}</span>`;
     allCats().forEach(c => {
       const n = yearEntries.filter(e => e.type === c.id).length;
-      if (n > 0) html += `<span style="color:${c.color}">${c.icon} ${n} ${c.label}</span>`;
+      if (n > 0) html += `<span style="color:${c.color}">${c.icon} ${n}</span>`;
     });
     el.innerHTML = html;
   }
@@ -726,15 +721,15 @@
     const el = document.getElementById('entriesList');
 
     let filtered = entries.filter(e => {
-      const matchYear = getYear(e) === selectedYear;
-      const matchCat  = activeFilter === 'All' || e.type === activeFilter;
+      const matchYear   = getYear(e) === selectedYear;
+      const matchCat    = activeFilter === 'All' || e.type === activeFilter;
       const matchSearch = !search || (e.title || '').toLowerCase().includes(search);
       return matchYear && matchCat && matchSearch;
     });
 
     if (!filtered.length) {
       el.innerHTML = `<div class="empty-state">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
         <p>${entries.filter(e => getYear(e) === selectedYear).length === 0
           ? `Nothing logged for ${selectedYear} yet.`
           : 'No entries match your filter.'}</p>
@@ -742,20 +737,31 @@
       return;
     }
 
-    // Sort alphabetically by title
-    filtered.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    // Group by category (in BUILT_IN order, then custom), entries sorted oldest→newest
+    const groups = {};
+    filtered.forEach(e => { (groups[e.type] = groups[e.type] || []).push(e); });
 
-    el.innerHTML = `<div class="entry-list">${filtered.map(e => {
-      const meta = catMeta(e.type);
-      // isOwner is a closure variable from auth state
-      return `<div class="entry-row">
-        <div class="entry-title">${escHtml(e.title)}</div>
-        <div class="cat-badge" style="background:${meta.color}1a;color:${meta.color}">${meta.icon} ${meta.label}</div>
-        <button class="del-btn owner-only${isOwner ? ' visible' : ''}" onclick="deleteEntry('${e.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+    const orderedCats = allCats().filter(c => groups[c.id]);
+    // Any entries with unrecognised categories
+    Object.keys(groups).forEach(id => { if (!orderedCats.find(c => c.id === id)) orderedCats.push(catMeta(id)); });
+
+    el.innerHTML = orderedCats.map(cat => {
+      const items = groups[cat.id]; // already ordered asc by createdAt from Firestore
+      const rows = items.map(e => `
+        <div class="entry-row">
+          <div class="entry-title">${escHtml(e.title)}</div>
+          <button class="del-btn owner-only${isOwner ? ' visible' : ''}" onclick="deleteEntry('${e.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`).join('');
+
+      return `<div class="cat-group">
+        <div class="cat-group-header" style="color:${cat.color}">${cat.icon} ${cat.label}
+          <span class="cat-count">${items.length}</span>
+        </div>
+        <div class="entry-list">${rows}</div>
       </div>`;
-    }).join('')}</div>`;
+    }).join('');
   }
 
   function escHtml(s) {
@@ -775,12 +781,9 @@
   }
 
   // ── Auth error ────────────────────────────────────────────
-  function showAuthError(code) {
+  function showAuthError(msg) {
     const el = document.getElementById('authError');
-    el.innerHTML = `Sign-in failed: <code>${code}</code><br>
-      If this says <code>auth/unauthorized-domain</code>, go to
-      <strong>Firebase → Authentication → Settings → Authorized domains</strong>
-      and add <strong>gabrieljacobi-prog.github.io</strong>.`;
+    el.textContent = msg;
     el.classList.add('visible');
   }
 
