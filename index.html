@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Tracker</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22222f;
+      --border: #2e2e40;
+      --accent: #7c6cff;
+      --accent-light: #a89fff;
+      --text: #e8e8f0;
+      --text-muted: #8888aa;
+      --danger: #ff5c72;
+
+      --movie: #ff7a45;
+      --book: #52c41a;
+      --game: #1890ff;
+      --music: #eb2f96;
+      --podcast: #faad14;
+      --comic: #13c2c2;
+      --audiobook: #722ed1;
+      --concert: #fa541c;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    header {
+      max-width: 960px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .year-badge {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    /* Stats bar */
+    .stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-chip .count {
+      font-weight: 700;
+      color: var(--accent-light);
+    }
+
+    /* Add form */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input, select, textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    select option { background: var(--surface2); }
+
+    textarea { resize: vertical; min-height: 60px; }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Type pills */
+    .type-select-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .type-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+      background: var(--surface2);
+      color: var(--text-muted);
+    }
+
+    .type-pill.active {
+      color: #fff;
+    }
+
+    .type-pill[data-type="Movie & TV"].active    { background: var(--movie);     border-color: var(--movie); }
+    .type-pill[data-type="Book"].active          { background: var(--book);      border-color: var(--book); }
+    .type-pill[data-type="Video Game"].active    { background: var(--game);      border-color: var(--game); }
+    .type-pill[data-type="Music Album"].active   { background: var(--music);     border-color: var(--music); }
+    .type-pill[data-type="Podcast"].active       { background: var(--podcast);   border-color: var(--podcast); color: #333; }
+    .type-pill[data-type="Comic"].active         { background: var(--comic);     border-color: var(--comic); color: #333; }
+    .type-pill[data-type="Audiobook"].active     { background: var(--audiobook); border-color: var(--audiobook); }
+    .type-pill[data-type="Concert"].active       { background: var(--concert);   border-color: var(--concert); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-bar input {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .filter-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .filter-pill.active-filter {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Log table */
+    .log-table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: var(--surface);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    thead th:hover { color: var(--text); }
+
+    tbody tr {
+      border-top: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    td {
+      padding: 11px 14px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .type-tag {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .type-tag[data-type="Movie & TV"]  { background: #ff7a4520; color: var(--movie); }
+    .type-tag[data-type="Book"]        { background: #52c41a20; color: var(--book); }
+    .type-tag[data-type="Video Game"]  { background: #1890ff20; color: var(--game); }
+    .type-tag[data-type="Music Album"] { background: #eb2f9620; color: var(--music); }
+    .type-tag[data-type="Podcast"]     { background: #faad1420; color: var(--podcast); }
+    .type-tag[data-type="Comic"]       { background: #13c2c220; color: var(--comic); }
+    .type-tag[data-type="Audiobook"]   { background: #722ed120; color: var(--audiobook); }
+    .type-tag[data-type="Concert"]     { background: #fa541c20; color: var(--concert); }
+
+    .rating-stars { color: #faad14; letter-spacing: 1px; }
+
+    .notes-cell {
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .delete-btn:hover { background: #ff5c7220; color: var(--danger); }
+
+    .empty-state {
+      text-align: center;
+      padding: 52px 24px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* Sort indicator */
+    .sort-indicator { margin-left: 4px; opacity: 0.6; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Sync status */
+    .sync-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      display: inline-block;
+      margin-right: 5px;
+      transition: background 0.3s;
+    }
+    .sync-dot.synced  { background: #52c41a; }
+    .sync-dot.syncing { background: #faad14; animation: pulse 1s infinite; }
+    .sync-dot.error   { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+    .sync-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <h1>Media Tracker</h1>
+      <div class="year-badge" id="yearBadge"></div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="sync-label"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Connecting…</span></span>
+    <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-primary" onclick="toggleForm()">+ Log Entry</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats" id="stats"></div>
+
+  <!-- Add form -->
+  <div class="card" id="addForm" style="display:none">
+    <h2>New Entry</h2>
+
+    <div style="margin-bottom:14px">
+      <label style="display:block;margin-bottom:8px">Type</label>
+      <div class="type-select-row" id="typePills">
+        <div class="type-pill active" data-type="Movie & TV">🎬 Movie & TV</div>
+        <div class="type-pill" data-type="Book">📚 Book</div>
+        <div class="type-pill" data-type="Video Game">🎮 Video Game</div>
+        <div class="type-pill" data-type="Music Album">🎵 Music Album</div>
+        <div class="type-pill" data-type="Audiobook">🎧 Audiobook</div>
+        <div class="type-pill" data-type="Podcast">🎙 Podcast</div>
+        <div class="type-pill" data-type="Comic">📖 Comic</div>
+        <div class="type-pill" data-type="Concert">🎤 Concert</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="grid-column: 1 / -1">
+        <label>Title</label>
+        <input id="inputTitle" type="text" placeholder="e.g. Dune: Part Two" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input id="inputDate" type="date" />
+      </div>
+      <div class="form-group">
+        <label>Rating (1–5)</label>
+        <select id="inputRating">
+          <option value="">— No rating</option>
+          <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+          <option value="4">⭐⭐⭐⭐ (4)</option>
+          <option value="3">⭐⭐⭐ (3)</option>
+          <option value="2">⭐⭐ (2)</option>
+          <option value="1">⭐ (1)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="inputStatus">
+          <option value="Completed">Completed</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Dropped">Dropped</option>
+          <option value="Watching">Watching</option>
+          <option value="On Hold">On Hold</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Creator / Author / Director</label>
+        <input id="inputCreator" type="text" placeholder="Optional" />
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px">
+      <label>Notes</label>
+      <textarea id="inputNotes" placeholder="Optional thoughts..."></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="🔍  Search titles..." oninput="renderTable()" />
+    <div class="filter-pill active-filter" data-filter="All" onclick="setFilter('All')">All</div>
+    <div class="filter-pill" data-filter="Movie & TV" onclick="setFilter('Movie & TV')">🎬 Movie & TV</div>
+    <div class="filter-pill" data-filter="Book" onclick="setFilter('Book')">📚 Book</div>
+    <div class="filter-pill" data-filter="Video Game" onclick="setFilter('Video Game')">🎮 Game</div>
+    <div class="filter-pill" data-filter="Music Album" onclick="setFilter('Music Album')">🎵 Music</div>
+    <div class="filter-pill" data-filter="Audiobook" onclick="setFilter('Audiobook')">🎧 Audiobook</div>
+    <div class="filter-pill" data-filter="Podcast" onclick="setFilter('Podcast')">🎙 Podcast</div>
+    <div class="filter-pill" data-filter="Comic" onclick="setFilter('Comic')">📖 Comic</div>
+    <div class="filter-pill" data-filter="Concert" onclick="setFilter('Concert')">🎤 Concert</div>
+  </div>
+
+  <!-- Table -->
+  <div class="log-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="setSort('date')">Date <span class="sort-indicator" id="sort-date"></span></th>
+          <th onclick="setSort('title')">Title <span class="sort-indicator" id="sort-title"></span></th>
+          <th onclick="setSort('type')">Type <span class="sort-indicator" id="sort-type"></span></th>
+          <th onclick="setSort('rating')">Rating <span class="sort-indicator" id="sort-rating"></span></th>
+          <th>Status</th>
+          <th>Creator</th>
+          <th>Notes</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="emptyState" style="display:none" class="empty-state">
+      <div class="icon">📋</div>
+      <p>No entries yet — log your first piece of media!</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // --- FIREBASE INIT ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyArOMqSQL04Dd7ff_8g_G9872tXO9XkiAc",
+    authDomain: "media-tracker-a00cf.firebaseapp.com",
+    projectId: "media-tracker-a00cf",
+    storageBucket: "media-tracker-a00cf.firebasestorage.app",
+    messagingSenderId: "839766001354",
+    appId: "1:839766001354:web:4520dfe872f4039aac9633"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const col = db.collection('entries');
+
+  // --- STATE ---
+  let entries = [];
+  let activeFilter = 'All';
+  let sortField = 'date';
+  let sortDir = 'desc';
+  let selectedType = 'Movie & TV';
+
+  // --- SYNC STATUS ---
+  function setSyncStatus(state, label) {
+    const dot = document.getElementById('syncDot');
+    const lbl = document.getElementById('syncLabel');
+    dot.className = 'sync-dot ' + state;
+    lbl.textContent = label;
+  }
+
+  // Set year badge & default date
+  document.getElementById('yearBadge').textContent = new Date().getFullYear() + ' Log';
+  document.getElementById('inputDate').valueAsDate = new Date();
+
+  // --- REAL-TIME LISTENER ---
+  setSyncStatus('syncing', 'Connecting…');
+  col.orderBy('createdAt', 'desc').onSnapshot(
+    snapshot => {
+      entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setSyncStatus('synced', 'Synced');
+      renderAll();
+    },
+    err => {
+      setSyncStatus('error', 'Offline');
+      console.error('Firestore error:', err);
+    }
+  );
+
+  // --- TYPE PILLS ---
+  document.querySelectorAll('.type-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedType = pill.dataset.type;
+    });
+  });
+
+  // --- FORM TOGGLE ---
+  function toggleForm() {
+    const form = document.getElementById('addForm');
+    const isVisible = form.style.display !== 'none';
+    form.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) document.getElementById('inputTitle').focus();
+  }
+
+  // --- ADD ENTRY ---
+  async function addEntry() {
+    const title = document.getElementById('inputTitle').value.trim();
+    if (!title) { showToast('Please enter a title.'); return; }
+
+    const entry = {
+      title,
+      type: selectedType,
+      date: document.getElementById('inputDate').value || new Date().toISOString().split('T')[0],
+      rating: document.getElementById('inputRating').value,
+      status: document.getElementById('inputStatus').value,
+      creator: document.getElementById('inputCreator').value.trim(),
+      notes: document.getElementById('inputNotes').value.trim(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    setSyncStatus('syncing', 'Saving…');
+    try {
+      await col.add(entry);
+      clearForm();
+      toggleForm();
+      showToast('Entry saved!');
+    } catch (e) {
+      setSyncStatus('error', 'Save failed');
+      showToast('Error saving — check your connection.');
+      console.error(e);
+    }
+  }
+
+  function clearForm() {
+    document.getElementById('inputTitle').value = '';
+    document.getElementById('inputRating').value = '';
+    document.getElementById('inputStatus').value = 'Completed';
+    document.getElementById('inputCreator').value = '';
+    document.getElementById('inputNotes').value = '';
+    document.getElementById('inputDate').valueAsDate = new Date();
+  }
+
+  // --- DELETE ---
+  async function deleteEntry(id) {
+    if (!confirm('Delete this entry?')) return;
+    setSyncStatus('syncing', 'Deleting…');
+    try {
+      await col.doc(id).delete();
+      showToast('Entry deleted.');
+    } catch (e) {
+      setSyncStatus('error', 'Delete failed');
+      showToast('Error deleting — check your connection.');
+      console.error(e);
+    }
+  }
+
+  // --- SORT ---
+  function setSort(field) {
+    if (sortField === field) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortField = field;
+      sortDir = field === 'date' ? 'desc' : 'asc';
+    }
+    renderTable();
+    updateSortIndicators();
+  }
+
+  function updateSortIndicators() {
+    ['date','title','type','rating'].forEach(f => {
+      const el = document.getElementById('sort-' + f);
+      if (el) el.textContent = sortField === f ? (sortDir === 'asc' ? '↑' : '↓') : '';
+    });
+  }
+
+  // --- FILTER ---
+  function setFilter(type) {
+    activeFilter = type;
+    document.querySelectorAll('.filter-pill').forEach(p => {
+      p.classList.toggle('active-filter', p.dataset.filter === type);
+    });
+    renderTable();
+  }
+
+  // --- RENDER ---
+  function renderAll() {
+    renderStats();
+    renderTable();
+    updateSortIndicators();
+  }
+
+  function renderStats() {
+    const types = ['Movie & TV','Book','Video Game','Music Album','Audiobook','Podcast','Comic','Concert'];
+    const icons = {'Movie & TV':'🎬','Book':'📚','Video Game':'🎮','Music Album':'🎵','Audiobook':'🎧','Podcast':'🎙','Comic':'📖','Concert':'🎤'};
+    const statsEl = document.getElementById('stats');
+    const total = entries.length;
+    let html = `<div class="stat-chip">📊 <span class="count">${total}</span> total</div>`;
+    types.forEach(t => {
+      const count = entries.filter(e => e.type === t).length;
+      if (count > 0) html += `<div class="stat-chip">${icons[t]} <span class="count">${count}</span> ${t}</div>`;
+    });
+    statsEl.innerHTML = html;
+  }
+
+  function renderTable() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    let filtered = entries.filter(e => {
+      const matchesFilter = activeFilter === 'All' || e.type === activeFilter;
+      const matchesSearch = !search || e.title.toLowerCase().includes(search) ||
+        (e.creator && e.creator.toLowerCase().includes(search)) ||
+        (e.notes && e.notes.toLowerCase().includes(search));
+      return matchesFilter && matchesSearch;
+    });
+
+    filtered.sort((a, b) => {
+      let va = a[sortField] || '';
+      let vb = b[sortField] || '';
+      if (sortField === 'rating') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      empty.querySelector('p').textContent = entries.length === 0
+        ? 'No entries yet — log your first piece of media!'
+        : 'No entries match your search.';
+      return;
+    }
+
+    empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(e => `
+      <tr>
+        <td style="color:var(--text-muted);font-size:13px;white-space:nowrap">${formatDate(e.date)}</td>
+        <td style="font-weight:600">${escHtml(e.title)}</td>
+        <td><span class="type-tag" data-type="${e.type}">${e.type}</span></td>
+        <td class="rating-stars">${starsHtml(e.rating)}</td>
+        <td style="font-size:13px;color:var(--text-muted)">${escHtml(e.status || '')}</td>
+        <td style="font-size:13px;color:var(--text-muted)">${escHtml(e.creator || '')}</td>
+        <td class="notes-cell" title="${escHtml(e.notes || '')}">${escHtml(e.notes || '')}</td>
+        <td><button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Delete">✕</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function starsHtml(rating) {
+    if (!rating) return '<span style="color:var(--text-muted);font-size:12px">—</span>';
+    return '★'.repeat(parseInt(rating)) + '<span style="opacity:0.2">★</span>'.repeat(5 - parseInt(rating));
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m)-1]} ${parseInt(day)}, ${y}`;
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // --- EXPORT ---
+  function exportCSV() {
+    if (entries.length === 0) { showToast('Nothing to export yet.'); return; }
+    const headers = ['Date','Title','Type','Rating','Status','Creator','Notes'];
+    const rows = entries.map(e => [
+      e.date, e.title, e.type, e.rating || '', e.status, e.creator || '', e.notes || ''
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `media-log-${new Date().getFullYear()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV exported!');
+  }
+
+  // --- TOAST ---
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // Enter key on title input
+  document.getElementById('inputTitle').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addEntry();
+  });
+</script>
+</body>
+</html>
