@@ -421,7 +421,10 @@
 
   // ── Auth state ────────────────────────────────────────────
   // Handle redirect result on page load (mobile sign-in)
-  auth.getRedirectResult().catch(err => console.error('Redirect error:', err));
+  auth.getRedirectResult().catch(err => {
+    if (err.code) showToast(err.code);
+    console.error('Redirect error:', err);
+  });
 
   auth.onAuthStateChanged(user => {
     isOwner = !!(user && user.email === OWNER_EMAIL);
@@ -455,16 +458,31 @@
     }
   }
 
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
+  }
+
   function handleAuthClick() {
     const user = auth.currentUser;
     if (user) {
       if (confirm('Sign out?')) auth.signOut();
-    } else {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      // Use redirect — works on all mobile browsers without popup blockers
+      return;
+    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    if (isMobile()) {
+      // Redirect avoids popup blockers on mobile
       auth.signInWithRedirect(provider).catch(err => {
-        showToast('Sign-in failed.');
-        console.error(err);
+        showToast(err.code || err.message || 'Sign-in failed.'); console.error(err);
+      });
+    } else {
+      // Popup works best on desktop
+      auth.signInWithPopup(provider).catch(err => {
+        // If popup was blocked, fall back to redirect
+        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+          auth.signInWithRedirect(provider);
+        } else {
+          showToast('Sign-in failed.'); console.error(err);
+        }
       });
     }
   }
