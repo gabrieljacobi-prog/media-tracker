@@ -296,6 +296,8 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
       </button>
       <div class="dropdown" id="menuDropdown">
+        <!-- Signed-in email label — shown only when signed in -->
+        <div id="authEmailRow" style="display:none;padding:8px 14px 4px;font-size:12px;color:var(--text-muted);word-break:break-all"></div>
         <!-- Auth item — updated dynamically -->
         <button class="dropdown-item" id="authMenuItem" onclick="handleAuthClick()">
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -491,16 +493,20 @@
   });
 
   function updateAuthUI(user) {
-    const label   = document.getElementById('authMenuLabel');
-    const menuBtn = document.getElementById('authMenuItem');
-    const addBtn  = document.getElementById('addEntryBtn');
+    const label    = document.getElementById('authMenuLabel');
+    const menuBtn  = document.getElementById('authMenuItem');
+    const addBtn   = document.getElementById('addEntryBtn');
+    const emailRow = document.getElementById('authEmailRow');
 
     if (user) {
+      emailRow.style.display = 'block';
+      emailRow.textContent   = user.email || '';
       label.textContent = 'Sign out';
       menuBtn.innerHTML = `${IC.signout} <span>Sign out</span>`;
       menuBtn.classList.add('danger');
       if (isOwner) addBtn.classList.add('visible');
     } else {
+      emailRow.style.display = 'none';
       menuBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span>Sign in with Google</span>`;
       menuBtn.classList.remove('danger');
       addBtn.classList.remove('visible');
@@ -582,8 +588,20 @@
   // ── Category filter ───────────────────────────────────────
   function buildCatDropdown() {
     const dd = document.getElementById('catDropdown');
-    const usedIds = new Set(entries.filter(e => getYear(e) === selectedYear).map(e => e.category));
-    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...allCats().filter(c => usedIds.has(c.id))];
+    // Build from actual entry types so cross-device custom categories always appear
+    const usedTypes = [...new Set(
+      entries.filter(e => getYear(e) === selectedYear).map(e => e.type).filter(Boolean)
+    )];
+    // Sort by allCats order; unknowns (cross-device cats) go at the end alphabetically
+    const order = allCats().map(c => c.id);
+    usedTypes.sort((a, b) => {
+      const ai = order.indexOf(a), bi = order.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...usedTypes.map(id => catMeta(id))];
     dd.innerHTML = cats.map(c => `
       <button class="dropdown-item${c.id === activeFilter ? ' selected' : ''}" onclick="selectCatFilter('${c.id}')">
         ${c.icon} ${c.label}
