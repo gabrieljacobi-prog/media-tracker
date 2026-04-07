@@ -282,6 +282,15 @@
     .owner-only.visible { display: flex; }
     button.owner-only.visible { display: flex; }
 
+    /* ── AUTH ERROR BANNER ── */
+    .auth-error {
+      background: #ff5c7215; border: 1px solid var(--danger);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; color: var(--danger); line-height: 1.5; display: none;
+    }
+    .auth-error.visible { display: block; }
+    .auth-error code { background: #ff5c7225; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+
     /* ── TOAST ── */
     .toast {
       position: fixed; bottom: 28px; right: 20px; left: 20px; max-width: 320px; margin: 0 auto;
@@ -358,6 +367,9 @@
     </div>
   </div>
 
+  <!-- Auth error banner -->
+  <div class="auth-error" id="authError"></div>
+
   <!-- YEAR NAV -->
   <div class="year-nav">
     <button class="year-nav-btn" onclick="changeYear(-1)">
@@ -420,11 +432,6 @@
   let isOwner = false;
 
   // ── Auth state ────────────────────────────────────────────
-  // Handle redirect result on page load (mobile sign-in)
-  auth.getRedirectResult().catch(err => {
-    if (err.code) showToast(err.code);
-    console.error('Redirect error:', err);
-  });
 
   auth.onAuthStateChanged(user => {
     isOwner = !!(user && user.email === OWNER_EMAIL);
@@ -458,10 +465,6 @@
     }
   }
 
-  function isMobile() {
-    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(navigator.userAgent);
-  }
-
   function handleAuthClick() {
     const user = auth.currentUser;
     if (user) {
@@ -469,22 +472,16 @@
       return;
     }
     const provider = new firebase.auth.GoogleAuthProvider();
-    if (isMobile()) {
-      // Redirect avoids popup blockers on mobile
-      auth.signInWithRedirect(provider).catch(err => {
-        showToast(err.code || err.message || 'Sign-in failed.'); console.error(err);
-      });
-    } else {
-      // Popup works best on desktop
-      auth.signInWithPopup(provider).catch(err => {
-        // If popup was blocked, fall back to redirect
-        if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-          auth.signInWithRedirect(provider);
-        } else {
-          showToast('Sign-in failed.'); console.error(err);
-        }
-      });
-    }
+    auth.signInWithPopup(provider).catch(err => {
+      console.error(err);
+      if (err.code === 'auth/popup-blocked') {
+        showAuthError('Popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // User closed the window — do nothing
+      } else {
+        showAuthError(err.code || err.message || 'Sign-in failed.');
+      }
+    });
   }
 
   // ── Icons ─────────────────────────────────────────────────
@@ -775,6 +772,16 @@
     a.download = `media-log-${selectedYear}.csv`;
     a.click();
     showToast('CSV exported!');
+  }
+
+  // ── Auth error ────────────────────────────────────────────
+  function showAuthError(code) {
+    const el = document.getElementById('authError');
+    el.innerHTML = `Sign-in failed: <code>${code}</code><br>
+      If this says <code>auth/unauthorized-domain</code>, go to
+      <strong>Firebase → Authentication → Settings → Authorized domains</strong>
+      and add <strong>gabrieljacobi-prog.github.io</strong>.`;
+    el.classList.add('visible');
   }
 
   // ── Toast ─────────────────────────────────────────────────
