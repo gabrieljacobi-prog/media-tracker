@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Media Tracker</title>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
@@ -16,19 +15,9 @@
       --surface2: #22222f;
       --border: #2e2e40;
       --accent: #7c6cff;
-      --accent-light: #a89fff;
       --text: #e8e8f0;
       --text-muted: #8888aa;
       --danger: #ff5c72;
-
-      --movie: #ff7a45;
-      --book: #52c41a;
-      --game: #1890ff;
-      --music: #eb2f96;
-      --podcast: #faad14;
-      --comic: #13c2c2;
-      --audiobook: #722ed1;
-      --concert: #fa541c;
     }
 
     body {
@@ -36,506 +25,298 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 24px 16px;
+      padding: 24px 16px 60px;
     }
 
     header {
-      max-width: 960px;
-      margin: 0 auto 32px;
+      max-width: 860px;
+      margin: 0 auto 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
+    .logo { display: flex; align-items: center; gap: 10px; }
     .logo-icon {
-      width: 36px;
-      height: 36px;
+      width: 34px; height: 34px;
       background: var(--accent);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+    h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .year-tag {
+      font-size: 12px; font-weight: 600;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px 8px; color: var(--text-muted);
+      margin-left: 6px;
     }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
+    .header-right { display: flex; align-items: center; gap: 8px; }
 
-    .year-badge {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-top: 1px;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .btn:hover { opacity: 0.85; }
-
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-ghost {
-      background: var(--surface2);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
-    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
-
-    .container { max-width: 960px; margin: 0 auto; }
-
-    /* Stats bar */
-    .stats {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .stat-chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stat-chip .count {
-      font-weight: 700;
-      color: var(--accent-light);
-    }
-
-    /* Add form */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    .card h2 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .form-row { grid-template-columns: 1fr; }
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    input, select, textarea {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 14px;
-      padding: 9px 12px;
-      outline: none;
-      transition: border-color 0.15s;
-      font-family: inherit;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent);
-    }
-
-    select option { background: var(--surface2); }
-
-    textarea { resize: vertical; min-height: 60px; }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    /* Type pills */
-    .type-select-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .type-pill {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.15s;
-      background: var(--surface2);
-      color: var(--text-muted);
-    }
-
-    .type-pill.active {
-      color: #fff;
-    }
-
-    .type-pill[data-type="Movie & TV"].active    { background: var(--movie);     border-color: var(--movie); }
-    .type-pill[data-type="Book"].active          { background: var(--book);      border-color: var(--book); }
-    .type-pill[data-type="Video Game"].active    { background: var(--game);      border-color: var(--game); }
-    .type-pill[data-type="Music Album"].active   { background: var(--music);     border-color: var(--music); }
-    .type-pill[data-type="Podcast"].active       { background: var(--podcast);   border-color: var(--podcast); color: #333; }
-    .type-pill[data-type="Comic"].active         { background: var(--comic);     border-color: var(--comic); color: #333; }
-    .type-pill[data-type="Audiobook"].active     { background: var(--audiobook); border-color: var(--audiobook); }
-    .type-pill[data-type="Concert"].active       { background: var(--concert);   border-color: var(--concert); }
-
-    /* Filter bar */
-    .filter-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .filter-bar input {
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .filter-pill {
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1.5px solid var(--border);
-      background: var(--surface);
-      color: var(--text-muted);
-      transition: all 0.15s;
-    }
-
-    .filter-pill.active-filter {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    /* Log table */
-    .log-table-wrap {
-      overflow-x: auto;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead th {
-      background: var(--surface);
-      padding: 11px 14px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-    }
-
-    thead th:hover { color: var(--text); }
-
-    tbody tr {
-      border-top: 1px solid var(--border);
-      transition: background 0.1s;
-    }
-
-    tbody tr:hover { background: var(--surface2); }
-
-    td {
-      padding: 11px 14px;
-      font-size: 14px;
-      vertical-align: middle;
-    }
-
-    .type-tag {
-      display: inline-block;
-      padding: 3px 9px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .type-tag[data-type="Movie & TV"]  { background: #ff7a4520; color: var(--movie); }
-    .type-tag[data-type="Book"]        { background: #52c41a20; color: var(--book); }
-    .type-tag[data-type="Video Game"]  { background: #1890ff20; color: var(--game); }
-    .type-tag[data-type="Music Album"] { background: #eb2f9620; color: var(--music); }
-    .type-tag[data-type="Podcast"]     { background: #faad1420; color: var(--podcast); }
-    .type-tag[data-type="Comic"]       { background: #13c2c220; color: var(--comic); }
-    .type-tag[data-type="Audiobook"]   { background: #722ed120; color: var(--audiobook); }
-    .type-tag[data-type="Concert"]     { background: #fa541c20; color: var(--concert); }
-
-    .rating-stars { color: #faad14; letter-spacing: 1px; }
-
-    .notes-cell {
-      max-width: 220px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text-muted);
-      font-size: 13px;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      transition: all 0.15s;
-    }
-
-    .delete-btn:hover { background: #ff5c7220; color: var(--danger); }
-
-    .empty-state {
-      text-align: center;
-      padding: 52px 24px;
-      color: var(--text-muted);
-    }
-
-    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; }
-
-    /* Sort indicator */
-    .sort-indicator { margin-left: 4px; opacity: 0.6; }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--accent);
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: all 0.25s;
-      pointer-events: none;
-      z-index: 999;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-
-    /* Sync status */
     .sync-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      display: inline-block;
-      margin-right: 5px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--text-muted); flex-shrink: 0;
       transition: background 0.3s;
     }
     .sync-dot.synced  { background: #52c41a; }
     .sync-dot.syncing { background: #faad14; animation: pulse 1s infinite; }
     .sync-dot.error   { background: var(--danger); }
-    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
-    .sync-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
+    .btn {
+      border: none; border-radius: 8px; padding: 8px 14px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: opacity .15s; display: flex; align-items: center; gap: 6px;
     }
+    .btn:hover { opacity: .82; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost {
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-icon {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 8px;
+      padding: 7px 10px; cursor: pointer; transition: opacity .15s;
+      display: flex; align-items: center;
+    }
+    .btn-icon:hover { opacity: .8; }
+    .btn-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+
+    /* Dropdown menu */
+    .menu-wrap { position: relative; }
+    .dropdown {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px; min-width: 160px; z-index: 100;
+      box-shadow: 0 8px 24px #0008;
+    }
+    .dropdown.open { display: block; }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 7px; font-size: 13px;
+      color: var(--text-muted); cursor: pointer; transition: background .12s;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+    .dropdown-item svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex-shrink: 0; }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Stats */
+    .stats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stat-chip {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 13px; font-size: 13px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .stat-chip svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .stat-chip .n { font-weight: 700; }
+
+    /* Card / form */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; margin-bottom: 18px;
+    }
+    .card-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .4px;
+      display: block; margin-bottom: 6px;
+    }
+    input[type=text], input[type=number] {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px;
+      padding: 9px 12px; outline: none; transition: border-color .15s;
+      font-family: inherit; width: 100%;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 120px; gap: 12px; margin-bottom: 14px; }
+    @media(max-width:500px){ .form-row { grid-template-columns: 1fr; } }
+
+    .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+
+    /* Category pills */
+    .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .cat-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: 2px solid transparent;
+      background: var(--surface2); color: var(--text-muted);
+      transition: all .15s;
+    }
+    .cat-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .cat-pill.active { color: #fff; }
+    .cat-pill.add-custom {
+      border-style: dashed; border-color: var(--border); color: var(--text-muted);
+    }
+    .cat-pill.add-custom:hover { border-color: var(--accent); color: var(--accent); }
+
+    .custom-input-wrap { display: none; align-items: center; gap: 6px; }
+    .custom-input-wrap.visible { display: flex; }
+    .custom-input-wrap input { width: 150px; padding: 6px 10px; font-size: 13px; }
+    .custom-input-wrap .btn { padding: 6px 12px; font-size: 13px; }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex; gap: 8px; margin-bottom: 16px;
+      flex-wrap: wrap; align-items: center;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; }
+    .search-wrap svg {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; stroke: var(--text-muted); fill: none; pointer-events: none;
+    }
+    .search-wrap input { padding-left: 32px; }
+
+    .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text-muted); transition: all .15s;
+    }
+    .filter-pill svg { width: 12px; height: 12px; stroke: currentColor; fill: none; flex-shrink: 0; }
+    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Entries grouped by year */
+    .year-group { margin-bottom: 28px; }
+    .year-heading {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .year-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .entry-list { display: flex; flex-direction: column; gap: 2px; }
+    .entry-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      transition: background .1s;
+    }
+    .entry-row:hover { background: var(--surface2); }
+
+    .entry-title { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; }
+    .entry-title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+    .cat-badge {
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+    .cat-badge svg { width: 11px; height: 11px; stroke: currentColor; fill: none; flex-shrink: 0; }
+
+    .del-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: 4px; border-radius: 6px;
+      display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
+    }
+    .del-btn:hover { background: #ff5c7220; color: var(--danger); }
+    .del-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+
+    .empty-state {
+      text-align: center; padding: 60px 24px; color: var(--text-muted);
+    }
+    .empty-state svg { width: 36px; height: 36px; stroke: var(--border); fill: none; display: block; margin: 0 auto 12px; }
+    .empty-state p { font-size: 15px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--accent); color: #fff;
+      padding: 10px 18px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      opacity: 0; transform: translateY(8px);
+      transition: all .25s; pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
 <header>
   <div class="logo">
-    <div class="logo-icon">🎬</div>
-    <div>
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:4px">
       <h1>Media Tracker</h1>
-      <div class="year-badge" id="yearBadge"></div>
+      <span class="year-tag" id="yearTag"></span>
     </div>
   </div>
-  <div class="header-actions">
-    <span class="sync-label"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Connecting…</span></span>
-    <button class="btn btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn btn-primary" onclick="toggleForm()">+ Log Entry</button>
+  <div class="header-right">
+    <div class="sync-dot" id="syncDot" title="Sync status"></div>
+    <div class="menu-wrap">
+      <button class="btn-icon" id="menuBtn" title="More options">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+      </button>
+      <div class="dropdown" id="menuDropdown">
+        <button class="dropdown-item" onclick="exportCSV()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="toggleForm()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log Entry
+    </button>
   </div>
 </header>
 
 <div class="container">
 
-  <!-- Stats -->
   <div class="stats" id="stats"></div>
 
   <!-- Add form -->
   <div class="card" id="addForm" style="display:none">
-    <h2>New Entry</h2>
-
-    <div style="margin-bottom:14px">
-      <label style="display:block;margin-bottom:8px">Type</label>
-      <div class="type-select-row" id="typePills">
-        <div class="type-pill active" data-type="Movie & TV">🎬 Movie & TV</div>
-        <div class="type-pill" data-type="Book">📚 Book</div>
-        <div class="type-pill" data-type="Video Game">🎮 Video Game</div>
-        <div class="type-pill" data-type="Music Album">🎵 Music Album</div>
-        <div class="type-pill" data-type="Audiobook">🎧 Audiobook</div>
-        <div class="type-pill" data-type="Podcast">🎙 Podcast</div>
-        <div class="type-pill" data-type="Comic">📖 Comic</div>
-        <div class="type-pill" data-type="Concert">🎤 Concert</div>
-      </div>
-    </div>
-
+    <div class="card-title">New Entry</div>
     <div class="form-row">
-      <div class="form-group" style="grid-column: 1 / -1">
+      <div>
         <label>Title</label>
         <input id="inputTitle" type="text" placeholder="e.g. Dune: Part Two" />
       </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Date</label>
-        <input id="inputDate" type="date" />
-      </div>
-      <div class="form-group">
-        <label>Rating (1–5)</label>
-        <select id="inputRating">
-          <option value="">— No rating</option>
-          <option value="5">⭐⭐⭐⭐⭐ (5)</option>
-          <option value="4">⭐⭐⭐⭐ (4)</option>
-          <option value="3">⭐⭐⭐ (3)</option>
-          <option value="2">⭐⭐ (2)</option>
-          <option value="1">⭐ (1)</option>
-        </select>
+      <div>
+        <label>Year</label>
+        <input id="inputYear" type="number" min="1900" max="2099" />
       </div>
     </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label>Status</label>
-        <select id="inputStatus">
-          <option value="Completed">Completed</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Dropped">Dropped</option>
-          <option value="Watching">Watching</option>
-          <option value="On Hold">On Hold</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Creator / Author / Director</label>
-        <input id="inputCreator" type="text" placeholder="Optional" />
-      </div>
+    <label>Category</label>
+    <div class="cat-pills" id="typePills"></div>
+    <div class="custom-input-wrap" id="customInputWrap">
+      <input id="customCatInput" type="text" placeholder="Category name…" />
+      <button class="btn btn-primary" onclick="confirmCustomCat()">Add</button>
+      <button class="btn btn-ghost" onclick="cancelCustomCat()">Cancel</button>
     </div>
-
-    <div class="form-group" style="margin-bottom:16px">
-      <label>Notes</label>
-      <textarea id="inputNotes" placeholder="Optional thoughts..."></textarea>
-    </div>
-
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
       <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
     </div>
   </div>
 
-  <!-- Filter bar -->
+  <!-- Filter + search -->
   <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="🔍  Search titles..." oninput="renderTable()" />
-    <div class="filter-pill active-filter" data-filter="All" onclick="setFilter('All')">All</div>
-    <div class="filter-pill" data-filter="Movie & TV" onclick="setFilter('Movie & TV')">🎬 Movie & TV</div>
-    <div class="filter-pill" data-filter="Book" onclick="setFilter('Book')">📚 Book</div>
-    <div class="filter-pill" data-filter="Video Game" onclick="setFilter('Video Game')">🎮 Game</div>
-    <div class="filter-pill" data-filter="Music Album" onclick="setFilter('Music Album')">🎵 Music</div>
-    <div class="filter-pill" data-filter="Audiobook" onclick="setFilter('Audiobook')">🎧 Audiobook</div>
-    <div class="filter-pill" data-filter="Podcast" onclick="setFilter('Podcast')">🎙 Podcast</div>
-    <div class="filter-pill" data-filter="Comic" onclick="setFilter('Comic')">📖 Comic</div>
-    <div class="filter-pill" data-filter="Concert" onclick="setFilter('Concert')">🎤 Concert</div>
-  </div>
-
-  <!-- Table -->
-  <div class="log-table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th onclick="setSort('date')">Date <span class="sort-indicator" id="sort-date"></span></th>
-          <th onclick="setSort('title')">Title <span class="sort-indicator" id="sort-title"></span></th>
-          <th onclick="setSort('type')">Type <span class="sort-indicator" id="sort-type"></span></th>
-          <th onclick="setSort('rating')">Rating <span class="sort-indicator" id="sort-rating"></span></th>
-          <th>Status</th>
-          <th>Creator</th>
-          <th>Notes</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div id="emptyState" style="display:none" class="empty-state">
-      <div class="icon">📋</div>
-      <p>No entries yet — log your first piece of media!</p>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search titles…" oninput="renderEntries()" />
     </div>
+    <div class="filter-pills" id="filterPills"></div>
   </div>
 
+  <div id="entriesList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // --- FIREBASE INIT ---
+  // ── Firebase ──────────────────────────────────────────────
   const firebaseConfig = {
     apiKey: "AIzaSyArOMqSQL04Dd7ff_8g_G9872tXO9XkiAc",
     authDomain: "media-tracker-a00cf.firebaseapp.com",
@@ -544,253 +325,246 @@
     messagingSenderId: "839766001354",
     appId: "1:839766001354:web:4520dfe872f4039aac9633"
   };
-
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const col = db.collection('entries');
 
-  // --- STATE ---
-  let entries = [];
-  let activeFilter = 'All';
-  let sortField = 'date';
-  let sortDir = 'desc';
-  let selectedType = 'Movie & TV';
+  // ── SVG icons ─────────────────────────────────────────────
+  const ICONS = {
+    movies:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`,
+    tv:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="15" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>`,
+    book:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+    gamepad:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><path d="M9.45 5.28A2 2 0 0 1 11.4 4h1.2a2 2 0 0 1 1.95 1.28l1.03 2.76A2 2 0 0 0 17.54 9.3l.53.13A2 2 0 0 1 19.5 11.33V14a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-2.67a2 2 0 0 1 1.43-1.91l.53-.13a2 2 0 0 0 1.96-1.26z"/></svg>`,
+    headphones: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>`,
+    mic:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+    scroll:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></svg>`,
+    music:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    tag:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
+    list:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+  };
 
-  // --- SYNC STATUS ---
-  function setSyncStatus(state, label) {
-    const dot = document.getElementById('syncDot');
-    const lbl = document.getElementById('syncLabel');
-    dot.className = 'sync-dot ' + state;
-    lbl.textContent = label;
+  // ── Built-in categories ───────────────────────────────────
+  const BUILT_IN = [
+    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: ICONS.movies },
+    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: ICONS.tv },
+    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: ICONS.book },
+    { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: ICONS.gamepad },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: ICONS.headphones },
+    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: ICONS.mic },
+    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: ICONS.scroll },
+    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: ICONS.music },
+  ];
+
+  // ── State ─────────────────────────────────────────────────
+  let entries = [];
+  let customCats = JSON.parse(localStorage.getItem('customCats') || '[]');
+  let selectedCat = BUILT_IN[0].id;
+  let activeFilter = 'All';
+
+  function allCats() {
+    return [...BUILT_IN, ...customCats.map(c => ({ id: c, label: c, color: '#8888aa', icon: ICONS.tag }))];
+  }
+  function catMeta(id) {
+    return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: ICONS.tag };
   }
 
-  // Set year badge & default date
-  document.getElementById('yearBadge').textContent = new Date().getFullYear() + ' Log';
-  document.getElementById('inputDate').valueAsDate = new Date();
+  // ── Init ──────────────────────────────────────────────────
+  document.getElementById('yearTag').textContent = new Date().getFullYear();
+  document.getElementById('inputYear').value = new Date().getFullYear();
+  buildTypePills();
+  buildFilterPills();
 
-  // --- REAL-TIME LISTENER ---
-  setSyncStatus('syncing', 'Connecting…');
+  function setSyncStatus(state) {
+    document.getElementById('syncDot').className = 'sync-dot ' + state;
+  }
+
+  setSyncStatus('syncing');
   col.orderBy('createdAt', 'desc').onSnapshot(
-    snapshot => {
-      entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setSyncStatus('synced', 'Synced');
+    snap => {
+      entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setSyncStatus('synced');
       renderAll();
     },
-    err => {
-      setSyncStatus('error', 'Offline');
-      console.error('Firestore error:', err);
-    }
+    err => { setSyncStatus('error'); console.error(err); }
   );
 
-  // --- TYPE PILLS ---
-  document.querySelectorAll('.type-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      selectedType = pill.dataset.type;
+  // ── Pill builders ─────────────────────────────────────────
+  function buildTypePills() {
+    const wrap = document.getElementById('typePills');
+    wrap.innerHTML = allCats().map(c => {
+      const isActive = c.id === selectedCat;
+      const style = isActive ? `background:${c.color};border-color:${c.color}` : '';
+      return `<div class="cat-pill${isActive ? ' active' : ''}" data-cat="${c.id}" style="${style}">${c.icon} ${c.label}</div>`;
+    }).join('') + `<div class="cat-pill add-custom" id="addCustomBtn">${ICONS.tag} Custom…</div>`;
+
+    wrap.querySelectorAll('.cat-pill[data-cat]').forEach(pill => {
+      pill.addEventListener('click', () => { selectedCat = pill.dataset.cat; buildTypePills(); });
     });
+    document.getElementById('addCustomBtn').addEventListener('click', () => {
+      document.getElementById('customInputWrap').classList.add('visible');
+      document.getElementById('customCatInput').focus();
+    });
+  }
+
+  function buildFilterPills() {
+    const wrap = document.getElementById('filterPills');
+    const cats = [{ id: 'All', label: 'All', color: null, icon: ICONS.list }, ...allCats()];
+    wrap.innerHTML = cats.map(c =>
+      `<div class="filter-pill${c.id === activeFilter ? ' active' : ''}" data-filter="${c.id}">${c.icon} ${c.label}</div>`
+    ).join('');
+    wrap.querySelectorAll('.filter-pill').forEach(p => {
+      p.addEventListener('click', () => { activeFilter = p.dataset.filter; buildFilterPills(); renderEntries(); });
+    });
+  }
+
+  // ── Custom category ───────────────────────────────────────
+  function confirmCustomCat() {
+    const val = document.getElementById('customCatInput').value.trim();
+    if (!val) return;
+    if (!customCats.includes(val) && !BUILT_IN.find(c => c.id === val)) {
+      customCats.push(val);
+      localStorage.setItem('customCats', JSON.stringify(customCats));
+    }
+    selectedCat = val;
+    cancelCustomCat();
+    buildTypePills();
+    buildFilterPills();
+  }
+  function cancelCustomCat() {
+    document.getElementById('customInputWrap').classList.remove('visible');
+    document.getElementById('customCatInput').value = '';
+  }
+  document.getElementById('customCatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmCustomCat();
+    if (e.key === 'Escape') cancelCustomCat();
   });
 
-  // --- FORM TOGGLE ---
+  // ── Form ──────────────────────────────────────────────────
   function toggleForm() {
     const form = document.getElementById('addForm');
-    const isVisible = form.style.display !== 'none';
-    form.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) document.getElementById('inputTitle').focus();
+    const open = form.style.display !== 'none';
+    form.style.display = open ? 'none' : 'block';
+    if (!open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
   }
 
-  // --- ADD ENTRY ---
   async function addEntry() {
     const title = document.getElementById('inputTitle').value.trim();
+    const year  = parseInt(document.getElementById('inputYear').value) || new Date().getFullYear();
     if (!title) { showToast('Please enter a title.'); return; }
-
-    const entry = {
-      title,
-      type: selectedType,
-      date: document.getElementById('inputDate').value || new Date().toISOString().split('T')[0],
-      rating: document.getElementById('inputRating').value,
-      status: document.getElementById('inputStatus').value,
-      creator: document.getElementById('inputCreator').value.trim(),
-      notes: document.getElementById('inputNotes').value.trim(),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    };
-
-    setSyncStatus('syncing', 'Saving…');
+    setSyncStatus('syncing');
     try {
-      await col.add(entry);
-      clearForm();
+      await col.add({ title, year, type: selectedCat, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      document.getElementById('inputTitle').value = '';
+      document.getElementById('inputYear').value = new Date().getFullYear();
       toggleForm();
       showToast('Entry saved!');
-    } catch (e) {
-      setSyncStatus('error', 'Save failed');
-      showToast('Error saving — check your connection.');
+    } catch(e) {
+      setSyncStatus('error');
+      showToast('Error saving — check connection.');
       console.error(e);
     }
   }
+  document.getElementById('inputTitle').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
 
-  function clearForm() {
-    document.getElementById('inputTitle').value = '';
-    document.getElementById('inputRating').value = '';
-    document.getElementById('inputStatus').value = 'Completed';
-    document.getElementById('inputCreator').value = '';
-    document.getElementById('inputNotes').value = '';
-    document.getElementById('inputDate').valueAsDate = new Date();
-  }
-
-  // --- DELETE ---
+  // ── Delete ────────────────────────────────────────────────
   async function deleteEntry(id) {
     if (!confirm('Delete this entry?')) return;
-    setSyncStatus('syncing', 'Deleting…');
-    try {
-      await col.doc(id).delete();
-      showToast('Entry deleted.');
-    } catch (e) {
-      setSyncStatus('error', 'Delete failed');
-      showToast('Error deleting — check your connection.');
-      console.error(e);
-    }
+    setSyncStatus('syncing');
+    try { await col.doc(id).delete(); showToast('Deleted.'); }
+    catch(e) { setSyncStatus('error'); showToast('Error deleting.'); }
   }
 
-  // --- SORT ---
-  function setSort(field) {
-    if (sortField === field) {
-      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortField = field;
-      sortDir = field === 'date' ? 'desc' : 'asc';
-    }
-    renderTable();
-    updateSortIndicators();
-  }
-
-  function updateSortIndicators() {
-    ['date','title','type','rating'].forEach(f => {
-      const el = document.getElementById('sort-' + f);
-      if (el) el.textContent = sortField === f ? (sortDir === 'asc' ? '↑' : '↓') : '';
-    });
-  }
-
-  // --- FILTER ---
-  function setFilter(type) {
-    activeFilter = type;
-    document.querySelectorAll('.filter-pill').forEach(p => {
-      p.classList.toggle('active-filter', p.dataset.filter === type);
-    });
-    renderTable();
-  }
-
-  // --- RENDER ---
-  function renderAll() {
-    renderStats();
-    renderTable();
-    updateSortIndicators();
-  }
+  // ── Render ────────────────────────────────────────────────
+  function renderAll() { renderStats(); renderEntries(); buildFilterPills(); }
 
   function renderStats() {
-    const types = ['Movie & TV','Book','Video Game','Music Album','Audiobook','Podcast','Comic','Concert'];
-    const icons = {'Movie & TV':'🎬','Book':'📚','Video Game':'🎮','Music Album':'🎵','Audiobook':'🎧','Podcast':'🎙','Comic':'📖','Concert':'🎤'};
-    const statsEl = document.getElementById('stats');
-    const total = entries.length;
-    let html = `<div class="stat-chip">📊 <span class="count">${total}</span> total</div>`;
-    types.forEach(t => {
-      const count = entries.filter(e => e.type === t).length;
-      if (count > 0) html += `<div class="stat-chip">${icons[t]} <span class="count">${count}</span> ${t}</div>`;
+    const el = document.getElementById('stats');
+    let html = `<div class="stat-chip">${ICONS.list}<span class="n">${entries.length}</span> total</div>`;
+    allCats().forEach(c => {
+      const n = entries.filter(e => e.type === c.id).length;
+      if (n > 0) html += `<div class="stat-chip" style="color:${c.color}">${c.icon}<span class="n">${n}</span> ${c.label}</div>`;
     });
-    statsEl.innerHTML = html;
+    document.getElementById('stats').innerHTML = html;
   }
 
-  function renderTable() {
+  function getYear(e) {
+    if (e.year) return parseInt(e.year);
+    if (e.date) return parseInt(e.date.split('-')[0]);
+    return 0;
+  }
+
+  function renderEntries() {
     const search = document.getElementById('searchInput').value.toLowerCase();
+    const el = document.getElementById('entriesList');
 
     let filtered = entries.filter(e => {
-      const matchesFilter = activeFilter === 'All' || e.type === activeFilter;
-      const matchesSearch = !search || e.title.toLowerCase().includes(search) ||
-        (e.creator && e.creator.toLowerCase().includes(search)) ||
-        (e.notes && e.notes.toLowerCase().includes(search));
-      return matchesFilter && matchesSearch;
+      const matchCat = activeFilter === 'All' || e.type === activeFilter;
+      const matchSearch = !search || (e.title || '').toLowerCase().includes(search);
+      return matchCat && matchSearch;
     });
 
-    filtered.sort((a, b) => {
-      let va = a[sortField] || '';
-      let vb = b[sortField] || '';
-      if (sortField === 'rating') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
-      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-
-    const tbody = document.getElementById('tableBody');
-    const empty = document.getElementById('emptyState');
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = '';
-      empty.style.display = 'block';
-      empty.querySelector('p').textContent = entries.length === 0
-        ? 'No entries yet — log your first piece of media!'
-        : 'No entries match your search.';
+    if (!filtered.length) {
+      el.innerHTML = `<div class="empty-state">
+        ${ICONS.list}
+        <p>${entries.length === 0 ? 'No entries yet — log your first!' : 'No entries match your search.'}</p>
+      </div>`;
       return;
     }
 
-    empty.style.display = 'none';
-    tbody.innerHTML = filtered.map(e => `
-      <tr>
-        <td style="color:var(--text-muted);font-size:13px;white-space:nowrap">${formatDate(e.date)}</td>
-        <td style="font-weight:600">${escHtml(e.title)}</td>
-        <td><span class="type-tag" data-type="${e.type}">${e.type}</span></td>
-        <td class="rating-stars">${starsHtml(e.rating)}</td>
-        <td style="font-size:13px;color:var(--text-muted)">${escHtml(e.status || '')}</td>
-        <td style="font-size:13px;color:var(--text-muted)">${escHtml(e.creator || '')}</td>
-        <td class="notes-cell" title="${escHtml(e.notes || '')}">${escHtml(e.notes || '')}</td>
-        <td><button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Delete">✕</button></td>
-      </tr>
-    `).join('');
+    // Group by year, descending
+    const byYear = {};
+    filtered.forEach(e => { const y = getYear(e); (byYear[y] = byYear[y] || []).push(e); });
+    const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+
+    el.innerHTML = years.map(y => {
+      const rows = byYear[y].map(e => {
+        const meta = catMeta(e.type);
+        return `<div class="entry-row">
+          <div class="entry-title"><span>${escHtml(e.title)}</span></div>
+          <div class="cat-badge" style="background:${meta.color}1a;color:${meta.color}">${meta.icon} ${meta.label}</div>
+          <button class="del-btn" onclick="deleteEntry('${e.id}')" title="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+      return `<div class="year-group">
+        <div class="year-heading">${y || 'Unknown'}</div>
+        <div class="entry-list">${rows}</div>
+      </div>`;
+    }).join('');
   }
 
-  function starsHtml(rating) {
-    if (!rating) return '<span style="color:var(--text-muted);font-size:12px">—</span>';
-    return '★'.repeat(parseInt(rating)) + '<span style="opacity:0.2">★</span>'.repeat(5 - parseInt(rating));
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function formatDate(d) {
-    if (!d) return '—';
-    const [y, m, day] = d.split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[parseInt(m)-1]} ${parseInt(day)}, ${y}`;
-  }
-
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // --- EXPORT ---
+  // ── Export ────────────────────────────────────────────────
   function exportCSV() {
-    if (entries.length === 0) { showToast('Nothing to export yet.'); return; }
-    const headers = ['Date','Title','Type','Rating','Status','Creator','Notes'];
-    const rows = entries.map(e => [
-      e.date, e.title, e.type, e.rating || '', e.status, e.creator || '', e.notes || ''
-    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+    closeMenu();
+    if (!entries.length) { showToast('Nothing to export yet.'); return; }
+    const rows = entries.map(e => [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type].join(','));
     const a = document.createElement('a');
-    a.href = url;
+    a.href = URL.createObjectURL(new Blob(['Title,Year,Category\n' + rows.join('\n')], { type: 'text/csv' }));
     a.download = `media-log-${new Date().getFullYear()}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
     showToast('CSV exported!');
   }
 
-  // --- TOAST ---
+  // ── Menu ──────────────────────────────────────────────────
+  document.getElementById('menuBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('menuDropdown').classList.toggle('open');
+  });
+  document.addEventListener('click', closeMenu);
+  function closeMenu() { document.getElementById('menuDropdown').classList.remove('open'); }
+
+  // ── Toast ─────────────────────────────────────────────────
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2200);
   }
-
-  // Enter key on title input
-  document.getElementById('inputTitle').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addEntry();
-  });
 </script>
 </body>
 </html>
