@@ -263,6 +263,16 @@
     .entry-row.draggable { cursor: grab; }
     .entry-row.dragging { opacity: 0.5; background: var(--surface2); }
     .entry-row.drag-over { border-color: var(--accent); border-width: 2px; }
+
+    .entry-title.editable {
+      cursor: text;
+      background: var(--surface2);
+      outline: 1px solid var(--border) !important;
+    }
+    .entry-title.editable:focus {
+      outline: 2px solid var(--accent) !important;
+      background: var(--surface);
+    }
     .entry-title { flex: 1; font-size: 16px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .del-btn {
       background: none; border: none; cursor: pointer;
@@ -868,10 +878,7 @@
           return `
             <div class="entry-row draggable" draggable="true" data-id="${e.id}" style="display:flex;align-items:center;gap:8px">
               <svg style="width:18px;height:18px;color:var(--text-muted);flex-shrink:0;cursor:grab" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
-              <div class="entry-title" style="flex:1;min-width:0">${escHtml(e.title)}</div>
-              <button class="btn-icon" onclick="renameEntry('${e.id}')" style="padding:6px 8px;flex-shrink:0">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
+              <div class="entry-title editable" contenteditable="true" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px;outline:1px solid transparent">${escHtml(e.title)}</div>
               <button class="del-btn" onclick="deleteEntry('${e.id}')" style="flex-shrink:0">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -920,6 +927,36 @@
           e.preventDefault();
           if (draggedEntry && draggedEntry !== row.dataset.id) {
             await swapEntries(draggedEntry, row.dataset.id);
+          }
+        });
+      });
+
+      // Attach inline edit listeners to editable titles
+      const editables = document.querySelectorAll('.entry-title.editable');
+      editables.forEach(el => {
+        el.addEventListener('blur', async () => {
+          const newTitle = el.textContent.trim();
+          const id = el.dataset.id;
+          if (newTitle && newTitle !== entries.find(e => e.id === id)?.title) {
+            try {
+              await col.doc(id).update({ title: newTitle });
+              showToast('Renamed.');
+            } catch(err) {
+              showToast('Error saving.');
+              el.textContent = entries.find(e => e.id === id)?.title || '';
+            }
+          } else {
+            el.textContent = entries.find(e => e.id === id)?.title || '';
+          }
+        });
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            el.textContent = entries.find(ent => ent.id === el.dataset.id)?.title || '';
+            el.blur();
           }
         });
       });
