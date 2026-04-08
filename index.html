@@ -445,22 +445,22 @@
   const auth = firebase.auth();
   const col  = db.collection('entries');
 
-  // ── Icons (Tabler Icons) ──────────────────────────────────
+  // ── Icons (Google Material Icons) ─────────────────────────
   const IC = {
-    movies:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>`,
-    tv:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polyline points="8 21 12 17 16 21"/></svg>`,
-    book:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0"/><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>`,
-    gamepad:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><circle cx="17" cy="17" r="1"/><path d="M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>`,
-    audiobooks:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v8"/><path d="M9 17h6"/></svg>`,
-    podcasts:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="1"/><path d="M12 11a4 4 0 0 0-4 4v2"/><path d="M12 7a8 8 0 0 0-8 8v2"/><path d="M16 15v2a4 4 0 0 0 4-4"/><path d="M20 11v2a8 8 0 0 0-8-8"/></svg>`,
-    comics:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7"/><circle cx="17" cy="8" r="3"/><path d="M14.5 20l2.5-7.5 2.5 7.5"/></svg>`,
-    theatre:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 6L2 4M21 6l1-2M3 18l-1 2M21 18l1 2"/><rect x="7" y="9" width="10" height="6"/></svg>`,
-    concerts:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L5 7M15 3l4 4M5 19l4-4M19 19l-4-4"/><circle cx="12" cy="12" r="4"/></svg>`,
-    standup:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"/><path d="M12 8v6M9 12h6"/></svg>`,
-    tag:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
-    list:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
-    check:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-    signout:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    movies:      `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H6V5h12v14zM9 7h6v2H9zm0 4h6v2H9zm0 4h4v2H9z"/></svg>`,
+    tv:          `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>`,
+    book:        `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h6v2H9V4zm9 16H6V4h1v3h6V4h5v16z"/></svg>`,
+    gamepad:     `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.15c-.74-1.6-2.49-2.7-4.5-2.7-3.04 0-5.5 2.46-5.5 5.5s2.46 5.5 5.5 5.5c2.01 0 3.76-1.1 4.5-2.7H20v4c0 .55.45 1 1 1s1-.45 1-1v-10c0-1.1-.9-2-2-2zm-13-2c1.1 0 2 .9 2 2H5c0-1.1.9-2 2-2z"/></svg>`,
+    audiobooks:  `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.48 3 2 6.82 2 11.5S6.48 20 12 20s10-3.82 10-8.5S17.52 3 12 3zm0 15c-3.59 0-6.5-2.69-6.5-6s2.91-6 6.5-6 6.5 2.69 6.5 6-2.91 6-6.5 6zm3.5-9c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/></svg>`,
+    podcasts:    `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 3H4.5C3.12 3 2 4.12 2 5.5v13C2 19.88 3.12 21 4.5 21h15c1.38 0 2.5-1.12 2.5-2.5v-13C22 4.12 20.88 3 19.5 3zm-4 6c1.93 0 3.5 1.57 3.5 3.5S15.43 16 13.5 16 10 14.43 10 12.5s1.57-3.5 3.5-3.5zm4 9h-9v-1c0-1.33 2.67-2 4.5-2s4.5.67 4.5 2v1z"/></svg>`,
+    comics:      `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12h-8v-2h8v2zm0-3h-8V9h8v2zm0-3h-8V6h8v2z"/></svg>`,
+    theatre:     `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM3 5.12h18V9H3z M3 14h18v-2H3z M20 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
+    concerts:    `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm3.5 9c0 1.93-1.57 3.5-3.5 3.5S8.5 13.93 8.5 12s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5z"/></svg>`,
+    standup:     `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15h4v2h-4zm0-5h4v4h-4zm0-5h4v4h-4z"/></svg>`,
+    tag:         `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5c-1.66 0-3 1.34-3 3v9c0 1.66 1.34 3 3 3h11c.67 0 1.27-.33 1.63-.84L22 12 17.63 5.84zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>`,
+    list:        `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>`,
+    check:       `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`,
+    signout:     `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>`,
   };
 
   // ── Category Colors & Icons ───────────────────────────────
@@ -876,7 +876,7 @@
     const list = document.getElementById('catManagerList');
     list.innerHTML = allCats().map(cat => `
       <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-        <div style="width:28px;height:28px;border-radius:6px;background:${cat.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">${cat.icon}</div>
+        <div style="width:28px;height:28px;border-radius:6px;background:${cat.color};flex-shrink:0"></div>
         <span class="cat-name-display" data-id="${cat.id}" style="flex:1;font-weight:600">${escHtml(cat.label)}</span>
         <button class="btn-icon" onclick="startEditCat('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Rename">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
