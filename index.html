@@ -264,15 +264,9 @@
     .entry-row.dragging { opacity: 0.5; background: var(--surface2); }
     .entry-row.drag-over { border-color: var(--accent); border-width: 2px; }
 
-    .entry-title.editable {
-      cursor: text;
-      background: var(--surface2);
-      outline: 1px solid var(--border) !important;
-    }
-    .entry-title.editable:focus {
-      outline: 2px solid var(--accent) !important;
-      background: var(--surface);
-    }
+    /* Hide drag handle and delete when editing title */
+    .entry-row.editing-title .drag-handle { display: none; }
+    .entry-row.editing-title .delete-btn { display: none; }
     .entry-title { flex: 1; font-size: 16px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .del-btn {
       background: none; border: none; cursor: pointer;
@@ -325,6 +319,10 @@
         <button class="dropdown-item owner-only" id="editModeBtn" onclick="toggleEditMode()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span id="editModeLabel">Edit</span>
+        </button>
+        <button class="dropdown-item owner-only" id="catManagerBtn" onclick="openCategories()" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="7" cy="17" r="1"/><line x1="12" y1="6" x2="20" y2="6"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+          <span>Manage Categories</span>
         </button>
         <div class="dropdown-sep"></div>
         <button class="dropdown-item" onclick="exportCSV()">
@@ -405,6 +403,19 @@
 
 </div>
 
+<!-- Category Manager Modal -->
+<div id="catManagerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-height:80vh;overflow-y:auto;max-width:500px;width:90%">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Manage Categories</h2>
+    <div id="catManagerList" style="margin-bottom:20px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
+      <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add Category</button>
+    </div>
+    <button class="btn btn-ghost" onclick="closeCategories()" style="width:100%">Done</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -438,6 +449,10 @@
     signout:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
   };
 
+  // ── Category Colors & Icons ───────────────────────────────
+  const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d', '#eb2f96'];
+  const CAT_ICONS = { movies: IC.movies, tv: IC.tv, book: IC.book, gamepad: IC.gamepad, headphones: IC.headphones, mic: IC.mic, scroll: IC.scroll, music: IC.music, tag: IC.tag, list: IC.list };
+
   // ── Categories ────────────────────────────────────────────
   const BUILT_IN = [
     { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movies },
@@ -452,7 +467,7 @@
 
   // ── State ─────────────────────────────────────────────────
   let entries      = [];
-  let customCats   = JSON.parse(localStorage.getItem('customCats') || '[]');
+  let customCats   = migrateCustomCats(JSON.parse(localStorage.getItem('customCats') || '[]'));
   let selectedCat  = BUILT_IN[0].id;
   let activeFilter = 'All';
   let selectedYear = new Date().getFullYear();
@@ -461,8 +476,27 @@
   let editMode     = false;
   let draggedEntry = null;
 
+  function migrateCustomCats(data) {
+    // Migrate from old string format to new object format
+    if (Array.isArray(data) && data.length > 0) {
+      if (typeof data[0] === 'string') {
+        return data.map((name, idx) => ({
+          id: name,
+          label: name,
+          color: CAT_COLORS[idx % CAT_COLORS.length],
+          icon: IC.tag
+        }));
+      }
+    }
+    return data;
+  }
+
+  function saveCats() {
+    localStorage.setItem('customCats', JSON.stringify(customCats));
+  }
+
   function allCats() {
-    return [...BUILT_IN, ...customCats.map(c => ({ id: c, label: c, color: '#8888aa', icon: IC.tag }))];
+    return [...BUILT_IN, ...customCats];
   }
   function catMeta(id) {
     return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: IC.tag };
@@ -548,6 +582,8 @@
       if (addBtn && isOwner) addBtn.classList.add('visible');
       const editBtn = document.getElementById('editModeBtn');
       if (editBtn && isOwner) editBtn.classList.add('visible');
+      const catMgrBtn = document.getElementById('catManagerBtn');
+      if (catMgrBtn && isOwner) catMgrBtn.style.display = 'flex';
     } else {
       if (emailRow) emailRow.style.display = 'none';
       if (menuBtn) {
@@ -557,6 +593,8 @@
       if (addBtn) addBtn.classList.remove('visible');
       const editBtn = document.getElementById('editModeBtn');
       if (editBtn) editBtn.classList.remove('visible');
+      const catMgrBtn = document.getElementById('catManagerBtn');
+      if (catMgrBtn) catMgrBtn.style.display = 'none';
     }
   }
 
@@ -703,6 +741,82 @@
     document.getElementById('yearBtn').classList.remove('open');
   }
   document.addEventListener('click', closeAllDropdowns);
+
+  // ── Category Manager ───────────────────────────────────────
+  function openCategories() {
+    closeAllDropdowns();
+    showCategoryList();
+    document.getElementById('catManagerModal').style.display = 'flex';
+  }
+
+  function closeCategories() {
+    document.getElementById('catManagerModal').style.display = 'none';
+    document.getElementById('newCatName').value = '';
+  }
+
+  function showCategoryList() {
+    const list = document.getElementById('catManagerList');
+    list.innerHTML = customCats.map(cat => `
+      <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <div style="width:24px;height:24px;border-radius:6px;background:${cat.color}"></div>
+          <span style="font-weight:600;flex:1">${escHtml(cat.label)}</span>
+        </div>
+        <button class="btn-icon" onclick="renameCat('${cat.id}')" style="padding:6px 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon" onclick="deleteCat('${cat.id}')" style="padding:6px 8px">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function addNewCategory() {
+    const name = document.getElementById('newCatName').value.trim();
+    if (!name) { showToast('Category name required'); return; }
+    if (customCats.find(c => c.label === name)) { showToast('Category already exists'); return; }
+    if (BUILT_IN.find(c => c.label === name)) { showToast('Name reserved for built-in category'); return; }
+    customCats.push({
+      id: name,
+      label: name,
+      color: CAT_COLORS[customCats.length % CAT_COLORS.length],
+      icon: IC.tag
+    });
+    saveCats();
+    showCategoryList();
+    document.getElementById('newCatName').value = '';
+    buildTypePills();
+    buildCatDropdown();
+    showToast('Category added');
+  }
+
+  function renameCat(id) {
+    const cat = customCats.find(c => c.id === id);
+    if (!cat) return;
+    const newName = prompt('Rename category:', cat.label);
+    if (!newName || !newName.trim()) return;
+    if (customCats.find(c => c.label === newName && c.id !== id)) { showToast('Category name already exists'); return; }
+    const oldId = cat.id;
+    cat.id = newName;
+    cat.label = newName;
+    saveCats();
+    showCategoryList();
+    buildTypePills();
+    buildCatDropdown();
+    showToast('Category renamed');
+  }
+
+  function deleteCat(id) {
+    if (!confirm('Delete this category? Entries will still exist but won\'t be categorized.')) return;
+    customCats = customCats.filter(c => c.id !== id);
+    saveCats();
+    showCategoryList();
+    buildTypePills();
+    buildCatDropdown();
+    renderEntries();
+    showToast('Category deleted');
+  }
 
   // ── Form ──────────────────────────────────────────────────
   function toggleForm() {
@@ -877,9 +991,12 @@
         if (editMode && isOwner) {
           return `
             <div class="entry-row draggable" draggable="true" data-id="${e.id}" style="display:flex;align-items:center;gap:8px">
-              <svg style="width:18px;height:18px;color:var(--text-muted);flex-shrink:0;cursor:grab" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
-              <div class="entry-title editable" contenteditable="true" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px;outline:1px solid transparent">${escHtml(e.title)}</div>
-              <button class="del-btn" onclick="deleteEntry('${e.id}')" style="flex-shrink:0">
+              <svg class="drag-handle" style="width:18px;height:18px;color:var(--text-muted);flex-shrink:0;cursor:grab" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
+              <button class="btn-icon edit-title-btn" data-id="${e.id}" onclick="toggleTitleEdit('${e.id}')" style="padding:6px 8px;flex-shrink:0">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="del-btn delete-btn" onclick="deleteEntry('${e.id}')" style="flex-shrink:0">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>`;
@@ -931,36 +1048,84 @@
         });
       });
 
-      // Attach inline edit listeners to editable titles
-      const editables = document.querySelectorAll('.entry-title.editable');
-      editables.forEach(el => {
-        el.addEventListener('blur', async () => {
-          const newTitle = el.textContent.trim();
-          const id = el.dataset.id;
-          if (newTitle && newTitle !== entries.find(e => e.id === id)?.title) {
+      // Attach title edit handlers
+      const titleElements = document.querySelectorAll('.entry-title[data-id]');
+      titleElements.forEach(titleEl => {
+        titleEl.addEventListener('blur', async () => {
+          if (!titleEl.contentEditable || titleEl.contentEditable === 'false') return;
+          const id = titleEl.dataset.id;
+          const newTitle = titleEl.textContent.trim();
+          const oldEntry = entries.find(e => e.id === id);
+
+          if (newTitle && newTitle !== oldEntry?.title) {
             try {
               await col.doc(id).update({ title: newTitle });
               showToast('Renamed.');
             } catch(err) {
               showToast('Error saving.');
-              el.textContent = entries.find(e => e.id === id)?.title || '';
+              titleEl.textContent = oldEntry?.title || '';
             }
           } else {
-            el.textContent = entries.find(e => e.id === id)?.title || '';
+            titleEl.textContent = oldEntry?.title || '';
           }
+          finishTitleEdit(id);
         });
-        el.addEventListener('keydown', e => {
+        titleEl.addEventListener('keydown', e => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            el.blur();
+            titleEl.blur();
           } else if (e.key === 'Escape') {
             e.preventDefault();
-            el.textContent = entries.find(ent => ent.id === el.dataset.id)?.title || '';
-            el.blur();
+            const id = titleEl.dataset.id;
+            titleEl.textContent = entries.find(ent => ent.id === id)?.title || '';
+            finishTitleEdit(id);
           }
         });
       });
     }
+  }
+
+  function toggleTitleEdit(id) {
+    const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
+    const btnEl = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
+    const rowEl = document.querySelector(`.entry-row[data-id="${id}"]`);
+    if (!titleEl || !btnEl || !rowEl) return;
+
+    if (titleEl.contentEditable === 'true') {
+      // Currently editing, finish edit
+      titleEl.blur();
+    } else {
+      // Start editing
+      titleEl.contentEditable = 'true';
+      titleEl.style.background = 'var(--surface2)';
+      titleEl.style.outline = '2px solid var(--accent)';
+      rowEl.classList.add('editing-title');
+      // Change button icon to checkmark
+      btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      // Focus and select all text
+      titleEl.focus();
+      setTimeout(() => {
+        const range = document.createRange();
+        range.selectNodeContents(titleEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }, 0);
+    }
+  }
+
+  function finishTitleEdit(id) {
+    const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
+    const btnEl = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
+    const rowEl = document.querySelector(`.entry-row[data-id="${id}"]`);
+    if (!titleEl || !btnEl || !rowEl) return;
+
+    titleEl.contentEditable = 'false';
+    titleEl.style.background = '';
+    titleEl.style.outline = '';
+    rowEl.classList.remove('editing-title');
+    // Change button icon back to pencil
+    btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   }
 
   function escHtml(s) {
