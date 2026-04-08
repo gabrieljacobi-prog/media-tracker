@@ -382,14 +382,6 @@
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <div class="cat-filter-wrap menu-wrap">
-      <button class="cat-filter-btn" id="catFilterBtn">
-        <svg id="catFilterIcon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        <span id="catFilterLabel">All Categories</span>
-        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="dropdown" id="catDropdown" style="min-width:210px;left:0;right:auto;max-width:calc(100vw - 32px)"></div>
-    </div>
     <div class="search-wrap">
       <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
       <button class="btn-icon" id="searchToggle">
@@ -716,56 +708,7 @@
 
   // ── Category filter ───────────────────────────────────────
   function buildCatDropdown() {
-    const dd = document.getElementById('catDropdown');
-    // Build from actual entry types so cross-device custom categories always appear
-    const usedTypes = [...new Set(
-      entries.filter(e => getYear(e) === selectedYear).map(e => e.type).filter(Boolean)
-    )];
-    // Sort by allCats order; unknowns (cross-device cats) go at the end alphabetically
-    const order = allCats().map(c => c.id);
-    usedTypes.sort((a, b) => {
-      const ai = order.indexOf(a), bi = order.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b);
-      if (ai === -1) return 1;
-      if (bi === -1) return -1;
-      return ai - bi;
-    });
-    const cats = [{ id: 'All', label: 'All Categories', color: null, icon: IC.list }, ...usedTypes.map(id => catMeta(id))];
-    dd.innerHTML = cats.map(c => `
-      <button class="dropdown-item${c.id === activeFilter ? ' selected' : ''}" onclick="selectCatFilter('${c.id}')">
-        ${c.icon} ${c.label}
-        ${c.id === activeFilter ? `<span style="margin-left:auto">${IC.check}</span>` : ''}
-      </button>
-    `).join('');
-  }
-
-  function selectCatFilter(id) {
-    activeFilter = id;
-    const meta = id === 'All' ? { label: 'All Categories', icon: IC.list } : catMeta(id);
-    document.getElementById('catFilterLabel').textContent = meta.label;
-    const old = document.getElementById('catFilterIcon');
-    const tmp = document.createElement('div');
-    tmp.innerHTML = meta.icon;
-    const svg = tmp.firstChild;
-    svg.setAttribute('id', 'catFilterIcon');
-    svg.setAttribute('width', '15'); svg.setAttribute('height', '15');
-    old.replaceWith(svg);
-    closeCatDropdown();
-    buildCatDropdown();
-    renderEntries();
-  }
-
-  document.getElementById('catFilterBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    const dd = document.getElementById('catDropdown');
-    const btn = document.getElementById('catFilterBtn');
-    const isOpen = dd.classList.contains('open');
-    closeAllDropdowns();
-    if (!isOpen) { dd.classList.add('open'); btn.classList.add('open'); }
-  });
-  function closeCatDropdown() {
-    document.getElementById('catDropdown').classList.remove('open');
-    document.getElementById('catFilterBtn').classList.remove('open');
+    // Dropdown removed - categories now shown as pills
   }
 
   // ── Search ────────────────────────────────────────────────
@@ -778,7 +721,6 @@
   // ── Global close ──────────────────────────────────────────
   function closeAllDropdowns() {
     document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
-    document.getElementById('catFilterBtn').classList.remove('open');
     document.getElementById('yearBtn').classList.remove('open');
   }
   document.addEventListener('click', closeAllDropdowns);
@@ -872,13 +814,10 @@
     const list = document.getElementById('catManagerList');
     list.innerHTML = allCats().map(cat => `
       <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-        <div style="width:24px;height:24px;flex-shrink:0;color:var(--text);display:flex;align-items:center;justify-content:center">${cat.icon}</div>
+        <div style="width:24px;height:24px;flex-shrink:0;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openIconPicker('${cat.id}')" title="Change icon">${cat.icon}</div>
         <span class="cat-name-display" data-id="${cat.id}" style="flex:1;font-weight:600">${escHtml(cat.label)}</span>
         <button class="btn-icon cat-edit-btn" data-id="${cat.id}" onclick="startEditCat('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Rename">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/><path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        </button>
-        <button class="btn-icon" data-id="${cat.id}" onclick="openIconPicker('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Change icon">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 12c0 2.97 2.25 5.44 5 5.92V19H8v-1.08C11.75 17.44 14 14.97 14 12s-2.25-5.44-5-5.92V5H6v1.08C2.25 6.56 1 9.03 1 12zm6-8c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
         </button>
         <button class="btn-icon" data-id="${cat.id}" onclick="deleteCatWithCheck('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Delete">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/></svg>
@@ -1017,12 +956,13 @@
     const wrap = document.getElementById('typePills');
     wrap.innerHTML = allCats().map(c => {
       const active = c.id === selectedCat;
+      const count = entries.filter(e => e.type === c.id).length;
       return `<div class="cat-pill${active ? ' active' : ''}" data-cat="${c.id}"
-        style="${active ? `background:${c.color};border-color:${c.color}` : ''}">${c.icon} ${c.label}</div>`;
+        style="${active ? `background:${c.color};border-color:${c.color};color:white` : ''}">${c.icon} ${c.label} <span style="margin-left:4px;opacity:0.8;font-size:12px">${count}</span></div>`;
     }).join('') + `<div class="cat-pill add-pill" id="addCustomBtn">${IC.tag} Custom…</div>`;
 
     wrap.querySelectorAll('.cat-pill[data-cat]').forEach(p =>
-      p.addEventListener('click', () => { selectedCat = p.dataset.cat; buildTypePills(); })
+      p.addEventListener('click', () => { selectedCat = p.dataset.cat; buildTypePills(); renderEntries(); })
     );
     document.getElementById('addCustomBtn').addEventListener('click', () => {
       document.getElementById('customRow').classList.add('open');
