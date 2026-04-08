@@ -445,39 +445,41 @@
   const auth = firebase.auth();
   const col  = db.collection('entries');
 
-  // ── Icons (Google Material Icons) ─────────────────────────
+  // ── Icons (Lucide Icons) ──────────────────────────────────
   const IC = {
-    movie:           `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H6V5h12v14zM9 7h6v2H9zm0 4h6v2H9zm0 4h4v2H9z"/></svg>`,
-    tv:              `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>`,
-    book2:           `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>`,
-    booksMusicVideo: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8 12h8v2H8zm6-6H8v2h6zm6 12H4V3h16z"/></svg>`,
-    podcast:         `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.48 3 2 6.82 2 11.5S6.48 20 12 20s10-3.82 10-8.5S17.52 3 12 3zm0 15c-3.59 0-6.5-2.69-6.5-6s2.91-6 6.5-6 6.5 2.69 6.5 6-2.91 6-6.5 6zm3.5-9c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/></svg>`,
-    theaterComedy:   `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 2V7c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2z"/></svg>`,
-    comicBubble:     `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8l-2 2V4h14v12z"/></svg>`,
-    stadiaController:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 5h-2v4H7v2h4v4h2v-4h4v-2h-4V5zm6 6h2v2h-2zm0 3h2v2h-2z"/></svg>`,
-    musicNote2:      `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-5h2v5zm4 0h-2V7h2v10zm4-3h-2v-4h2v4z"/></svg>`,
+    film:           `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>`,
+    tv:             `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
+    bookCopy:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6.5a2.5 2.5 0 0 1-2.5-2.5v-15a2.5 2.5 0 0 1 2.5-2.5z"/></svg>`,
+    bookHeadphones: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6.5a2.5 2.5 0 0 1-2.5-2.5v-15a2.5 2.5 0 0 1 2.5-2.5z"/><circle cx="12" cy="14" r="3"/></svg>`,
+    mic:            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+    drama:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v10H6z"/><path d="M9 14v4m6-4v4M7 18h10"/><circle cx="9" cy="8" r="1"/><circle cx="15" cy="8" r="1"/></svg>`,
+    messageCircle:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+    gamepad2:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><circle cx="17" cy="17" r="1"/><path d="M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>`,
+    music:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+    micVocal:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/><path d="M5 8a2 2 0 0 1 2-2"/></svg>`,
   };
 
   // ── Category Colors & Icons ───────────────────────────────
-  const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d'];
+  const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d', '#eb2f96'];
   const CAT_ICONS = {
-    movie: IC.movie, tv: IC.tv, book2: IC.book2, booksMusicVideo: IC.booksMusicVideo,
-    podcast: IC.podcast, theaterComedy: IC.theaterComedy, comicBubble: IC.comicBubble,
-    stadiaController: IC.stadiaController, musicNote2: IC.musicNote2
+    film: IC.film, tv: IC.tv, bookCopy: IC.bookCopy, bookHeadphones: IC.bookHeadphones,
+    mic: IC.mic, drama: IC.drama, messageCircle: IC.messageCircle,
+    gamepad2: IC.gamepad2, music: IC.music, micVocal: IC.micVocal
   };
   const CAT_ICON_KEYS = Object.keys(CAT_ICONS);
 
   // ── Categories ────────────────────────────────────────────
   const DEFAULT_CATS = [
-    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movie, iconKey: 'movie', isBuiltIn: true },
+    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.film, iconKey: 'film', isBuiltIn: true },
     { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv, iconKey: 'tv', isBuiltIn: true },
-    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.book2, iconKey: 'book2', isBuiltIn: true },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#722ed1', icon: IC.booksMusicVideo, iconKey: 'booksMusicVideo', isBuiltIn: true },
-    { id: 'Podcasts',    label: 'Podcasts',    color: '#7c6cff', icon: IC.podcast, iconKey: 'podcast', isBuiltIn: true },
-    { id: 'Plays',       label: 'Plays',       color: '#faad14', icon: IC.theaterComedy, iconKey: 'theaterComedy', isBuiltIn: true },
-    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.comicBubble, iconKey: 'comicBubble', isBuiltIn: true },
-    { id: 'Video Games', label: 'Video Games', color: '#fa541c', icon: IC.stadiaController, iconKey: 'stadiaController', isBuiltIn: true },
-    { id: 'Concerts',    label: 'Concerts',    color: '#f5222d', icon: IC.musicNote2, iconKey: 'musicNote2', isBuiltIn: true },
+    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.bookCopy, iconKey: 'bookCopy', isBuiltIn: true },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#722ed1', icon: IC.bookHeadphones, iconKey: 'bookHeadphones', isBuiltIn: true },
+    { id: 'Podcasts',    label: 'Podcasts',    color: '#7c6cff', icon: IC.mic, iconKey: 'mic', isBuiltIn: true },
+    { id: 'Plays',       label: 'Plays',       color: '#faad14', icon: IC.drama, iconKey: 'drama', isBuiltIn: true },
+    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.messageCircle, iconKey: 'messageCircle', isBuiltIn: true },
+    { id: 'Video Games', label: 'Video Games', color: '#fa541c', icon: IC.gamepad2, iconKey: 'gamepad2', isBuiltIn: true },
+    { id: 'Concerts',    label: 'Concerts',    color: '#f5222d', icon: IC.music, iconKey: 'music', isBuiltIn: true },
+    { id: 'Stand-up',    label: 'Stand-up',    color: '#eb2f96', icon: IC.micVocal, iconKey: 'micVocal', isBuiltIn: true },
   ];
 
   // ── State ─────────────────────────────────────────────────
