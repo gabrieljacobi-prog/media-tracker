@@ -403,11 +403,20 @@
 
 </div>
 
+<!-- Icon Picker Modal -->
+<div id="iconPickerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:400px;width:90%">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Pick Icon</h3>
+    <div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:8px;margin-bottom:16px"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('iconPickerModal').style.display='none'" style="width:100%">Cancel</button>
+  </div>
+</div>
+
 <!-- Category Manager Modal -->
 <div id="catManagerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-height:80vh;overflow-y:auto;max-width:500px;width:90%">
     <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Manage Categories</h2>
-    <div id="catManagerList" style="margin-bottom:20px"></div>
+    <div id="catManagerList" style="margin-bottom:20px;max-height:300px;overflow-y:auto"></div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
       <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add Category</button>
@@ -451,24 +460,25 @@
 
   // ── Category Colors & Icons ───────────────────────────────
   const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d', '#eb2f96'];
+  const CAT_ICON_KEYS = ['movies', 'tv', 'book', 'gamepad', 'headphones', 'mic', 'scroll', 'music', 'tag', 'list'];
   const CAT_ICONS = { movies: IC.movies, tv: IC.tv, book: IC.book, gamepad: IC.gamepad, headphones: IC.headphones, mic: IC.mic, scroll: IC.scroll, music: IC.music, tag: IC.tag, list: IC.list };
 
   // ── Categories ────────────────────────────────────────────
-  const BUILT_IN = [
-    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movies },
-    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv },
-    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.book },
-    { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: IC.gamepad },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: IC.headphones },
-    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: IC.mic },
-    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.scroll },
-    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: IC.music },
+  const DEFAULT_CATS = [
+    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.movies, iconKey: 'movies', isBuiltIn: true },
+    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv, iconKey: 'tv', isBuiltIn: true },
+    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.book, iconKey: 'book', isBuiltIn: true },
+    { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: IC.gamepad, iconKey: 'gamepad', isBuiltIn: true },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: IC.headphones, iconKey: 'headphones', isBuiltIn: true },
+    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: IC.mic, iconKey: 'mic', isBuiltIn: true },
+    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.scroll, iconKey: 'scroll', isBuiltIn: true },
+    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: IC.music, iconKey: 'music', isBuiltIn: true },
   ];
 
   // ── State ─────────────────────────────────────────────────
   let entries      = [];
-  let customCats   = migrateCustomCats(JSON.parse(localStorage.getItem('customCats') || '[]'));
-  let selectedCat  = BUILT_IN[0].id;
+  let allCategoriesData = loadAllCategories();
+  let selectedCat  = DEFAULT_CATS[0].id;
   let activeFilter = 'All';
   let selectedYear = new Date().getFullYear();
   let isOwner      = false;
@@ -476,27 +486,51 @@
   let editMode     = false;
   let draggedEntry = null;
 
-  function migrateCustomCats(data) {
-    // Migrate from old string format to new object format
-    if (Array.isArray(data) && data.length > 0) {
-      if (typeof data[0] === 'string') {
-        return data.map((name, idx) => ({
+  function loadAllCategories() {
+    const stored = JSON.parse(localStorage.getItem('allCategories') || '{}');
+    const legacy = JSON.parse(localStorage.getItem('customCats') || '[]');
+
+    // Migrate legacy custom categories if needed
+    let customCats = [];
+    if (Array.isArray(legacy) && legacy.length > 0) {
+      if (typeof legacy[0] === 'string') {
+        customCats = legacy.map((name, idx) => ({
           id: name,
           label: name,
           color: CAT_COLORS[idx % CAT_COLORS.length],
-          icon: IC.tag
+          iconKey: 'tag',
+          isBuiltIn: false
+        }));
+      } else {
+        customCats = legacy.map((cat, idx) => ({
+          ...cat,
+          iconKey: cat.iconKey || 'tag',
+          isBuiltIn: false
         }));
       }
     }
-    return data;
+
+    // Merge with defaults
+    let merged = DEFAULT_CATS.map(def => stored[def.id] || def);
+    merged.push(...customCats);
+    return merged;
   }
 
-  function saveCats() {
-    localStorage.setItem('customCats', JSON.stringify(customCats));
+  function saveAllCategories() {
+    const toStore = {};
+    allCategoriesData.forEach(cat => {
+      if (cat.isBuiltIn || allCategoriesData.filter(c => !c.isBuiltIn).includes(cat)) {
+        toStore[cat.id] = cat;
+      }
+    });
+    localStorage.setItem('allCategories', JSON.stringify(toStore));
   }
 
   function allCats() {
-    return [...BUILT_IN, ...customCats];
+    return allCategoriesData.map(cat => ({
+      ...cat,
+      icon: CAT_ICONS[cat.iconKey] || IC.tag
+    }));
   }
   function catMeta(id) {
     return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: IC.tag };
@@ -746,6 +780,7 @@
   function openCategories() {
     closeAllDropdowns();
     showCategoryList();
+    showIconPicker();
     document.getElementById('catManagerModal').style.display = 'flex';
   }
 
@@ -754,36 +789,99 @@
     document.getElementById('newCatName').value = '';
   }
 
+  function showIconPicker() {
+    const grid = document.getElementById('iconGrid');
+    grid.innerHTML = CAT_ICON_KEYS.map(key => `
+      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;transition:all 0.2s;font-size:20px">
+        ${CAT_ICONS[key]}
+      </button>
+    `).join('');
+  }
+
+  function selectIcon(iconKey) {
+    const catId = window.currentIconPickerCat;
+    if (!catId) return;
+    const cat = allCategoriesData.find(c => c.id === catId);
+    if (!cat) return;
+    cat.iconKey = iconKey;
+    saveAllCategories();
+    showCategoryList();
+    buildTypePills();
+    buildCatDropdown();
+    renderEntries();
+    document.getElementById('iconPickerModal').style.display = 'none';
+    showToast('Icon updated');
+  }
+
   function showCategoryList() {
     const list = document.getElementById('catManagerList');
-    list.innerHTML = customCats.map(cat => `
+    list.innerHTML = allCats().map(cat => `
       <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px;flex:1">
-          <div style="width:24px;height:24px;border-radius:6px;background:${cat.color}"></div>
-          <span style="font-weight:600;flex:1">${escHtml(cat.label)}</span>
-        </div>
-        <button class="btn-icon" onclick="renameCat('${cat.id}')" style="padding:6px 8px">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <div style="width:28px;height:28px;border-radius:6px;background:${cat.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">${cat.icon}</div>
+        <div class="cat-name-editable" data-id="${cat.id}" contenteditable="true" style="flex:1;padding:4px 6px;border-radius:4px;outline:1px solid transparent" onblur="saveCatName('${cat.id}')" onkeydown="handleCatNameKeydown(event, '${cat.id}')">${escHtml(cat.label)}</div>
+        <button class="btn-icon" onclick="openIconPicker('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Change icon">
+          ${cat.icon}
         </button>
-        <button class="btn-icon" onclick="deleteCat('${cat.id}')" style="padding:6px 8px">
+        <button class="btn-icon" onclick="deleteCatWithCheck('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Delete">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
     `).join('');
   }
 
+  function handleCatNameKeydown(event, catId) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      document.querySelector(`.cat-name-editable[data-id="${catId}"]`).blur();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      const cat = allCategoriesData.find(c => c.id === catId);
+      event.target.textContent = cat.label;
+      event.target.blur();
+    }
+  }
+
+  function saveCatName(id) {
+    const el = document.querySelector(`.cat-name-editable[data-id="${id}"]`);
+    const newName = el.textContent.trim();
+    if (!newName) {
+      const cat = allCategoriesData.find(c => c.id === id);
+      el.textContent = cat.label;
+      return;
+    }
+    if (allCategoriesData.find(c => c.label === newName && c.id !== id)) {
+      showToast('Name already exists');
+      const cat = allCategoriesData.find(c => c.id === id);
+      el.textContent = cat.label;
+      return;
+    }
+    const cat = allCategoriesData.find(c => c.id === id);
+    cat.label = newName;
+    saveAllCategories();
+    buildTypePills();
+    buildCatDropdown();
+    renderEntries();
+    showToast('Category renamed');
+  }
+
+  function openIconPicker(catId) {
+    window.currentIconPickerCat = catId;
+    document.getElementById('iconPickerModal').style.display = 'flex';
+  }
+
   function addNewCategory() {
     const name = document.getElementById('newCatName').value.trim();
     if (!name) { showToast('Category name required'); return; }
-    if (customCats.find(c => c.label === name)) { showToast('Category already exists'); return; }
-    if (BUILT_IN.find(c => c.label === name)) { showToast('Name reserved for built-in category'); return; }
-    customCats.push({
+    if (allCategoriesData.find(c => c.label === name)) { showToast('Category already exists'); return; }
+    const customCount = allCategoriesData.filter(c => !c.isBuiltIn).length;
+    allCategoriesData.push({
       id: name,
       label: name,
-      color: CAT_COLORS[customCats.length % CAT_COLORS.length],
-      icon: IC.tag
+      color: CAT_COLORS[customCount % CAT_COLORS.length],
+      iconKey: 'tag',
+      isBuiltIn: false
     });
-    saveCats();
+    saveAllCategories();
     showCategoryList();
     document.getElementById('newCatName').value = '';
     buildTypePills();
@@ -791,26 +889,15 @@
     showToast('Category added');
   }
 
-  function renameCat(id) {
-    const cat = customCats.find(c => c.id === id);
-    if (!cat) return;
-    const newName = prompt('Rename category:', cat.label);
-    if (!newName || !newName.trim()) return;
-    if (customCats.find(c => c.label === newName && c.id !== id)) { showToast('Category name already exists'); return; }
-    const oldId = cat.id;
-    cat.id = newName;
-    cat.label = newName;
-    saveCats();
-    showCategoryList();
-    buildTypePills();
-    buildCatDropdown();
-    showToast('Category renamed');
-  }
-
-  function deleteCat(id) {
-    if (!confirm('Delete this category? Entries will still exist but won\'t be categorized.')) return;
-    customCats = customCats.filter(c => c.id !== id);
-    saveCats();
+  function deleteCatWithCheck(id) {
+    const entryCount = entries.filter(e => e.type === id).length;
+    if (entryCount > 0) {
+      showToast(`Cannot delete: ${entryCount} entry/entries use this category`);
+      return;
+    }
+    if (!confirm('Delete this category?')) return;
+    allCategoriesData = allCategoriesData.filter(c => c.id !== id);
+    saveAllCategories();
     showCategoryList();
     buildTypePills();
     buildCatDropdown();
