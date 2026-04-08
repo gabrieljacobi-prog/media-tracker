@@ -7,20 +7,19 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://unpkg.com/lucide"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f0f13;
-      --surface: #1a1a24;
-      --surface2: #22222f;
-      --border: #2e2e40;
-      --accent: #7c6cff;
-      --text: #e8e8f0;
-      --text-muted: #8888aa;
-      --danger: #ff5c72;
-      --radius: 12px;
+      --bg: #f4f4f8;
+      --surface: #ffffff;
+      --surface2: #ededf3;
+      --border: #e2e2ea;
+      --accent: #6c5ce7;
+      --text: #111118;
+      --text-muted: #8888a0;
+      --danger: #e63946;
+      --radius: 14px;
     }
 
     html {
@@ -56,6 +55,7 @@
       top: 0;
       z-index: 50;
       gap: 10px;
+      box-shadow: 0 1px 0 var(--border);
     }
 
     .logo { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
@@ -64,7 +64,7 @@
       border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .logo-icon svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .logo-text { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
 
     .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
@@ -88,14 +88,14 @@
     }
     .btn:hover { opacity: .82; }
     .btn-primary { background: var(--accent); color: #fff; padding: 10px 16px; }
-    .btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 16px; }
+    .btn-ghost { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 16px; }
     .btn-icon {
-      background: var(--surface2); border: 1px solid var(--border);
+      background: var(--surface); border: 1px solid var(--border);
       color: var(--text-muted); padding: 9px 10px; border-radius: 10px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: opacity .15s; -webkit-tap-highlight-color: transparent;
+      transition: all .15s; -webkit-tap-highlight-color: transparent;
     }
-    .btn-icon:hover { opacity: .8; }
+    .btn-icon:hover { background: var(--surface2); opacity: 1; }
     .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .btn-add svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
@@ -111,7 +111,7 @@
       display: none; position: absolute; right: 0; top: calc(100% + 8px);
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 6px; min-width: 190px;
-      z-index: 200; box-shadow: 0 12px 32px #000a;
+      z-index: 200; box-shadow: 0 8px 24px rgba(0,0,0,.10);
     }
     .dropdown.open { display: block; }
     .dropdown-item {
@@ -124,7 +124,7 @@
     .dropdown-item:hover, .dropdown-item.selected { background: var(--surface2); color: var(--text); }
     .dropdown-item.selected { color: var(--accent); }
     .dropdown-item.danger { color: var(--danger); }
-    .dropdown-item.danger:hover { background: #ff5c7215; }
+    .dropdown-item.danger:hover { background: rgba(230,57,70,.08); }
     .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
     .dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
 
@@ -133,17 +133,17 @@
 
     /* ── AUTH ERROR ── */
     .auth-error {
-      background: #ff5c7215; border: 1px solid var(--danger);
+      background: rgba(230,57,70,.08); border: 1px solid rgba(230,57,70,.3);
       border-radius: 10px; padding: 12px 16px; margin-top: 16px;
       font-size: 14px; color: var(--danger); line-height: 1.5; display: none;
     }
     .auth-error.visible { display: block; }
-    .auth-error code { background: #ff5c7225; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .auth-error code { background: rgba(230,57,70,.12); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 
     /* ── YEAR NAV ── */
     .year-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 0 14px; gap: 10px;
+      padding: 22px 0 14px; gap: 10px;
     }
     .year-dropdown-wrap { position: relative; }
     .year-btn {
@@ -152,7 +152,7 @@
       font-family: inherit; color: var(--text); padding: 4px 0;
       -webkit-tap-highlight-color: transparent;
     }
-    .year-label { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+    .year-label { font-size: 36px; font-weight: 900; letter-spacing: -2px; line-height: 1; color: var(--text); }
     .year-btn .chevron { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
     .year-btn.open .chevron { transform: rotate(180deg); }
     .year-dropdown { left: 0; right: auto; min-width: 130px; max-height: 280px; overflow-y: auto; }
@@ -163,7 +163,6 @@
     .owner-only.visible { display: flex !important; }
 
     /* ── TOOLBAR ── */
-    .toolbar { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; }
 
     .cat-filter-wrap { position: relative; }
     .cat-filter-btn {
@@ -182,29 +181,23 @@
     .search-wrap { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; overflow: hidden; }
     .search-input-field {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-size: 16px;
-      padding: 10px 13px; outline: none; font-family: inherit;
+      border-radius: 10px; color: var(--text); font-size: 15px;
+      padding: 9px 13px; outline: none; font-family: inherit;
       max-width: 0; min-width: 0; width: 100%;
       opacity: 0; transition: max-width .25s ease, opacity .2s, border-color .15s;
       pointer-events: none; -webkit-appearance: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
     }
     .search-input-field.open { max-width: 200px; opacity: 1; pointer-events: all; }
     @media (max-width: 400px) { .search-input-field.open { max-width: 140px; } }
     .search-input-field:focus { border-color: var(--accent); }
 
-    /* ── STATS ── */
-    .stats-line {
-      font-size: 14px; color: var(--text-muted);
-      padding-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-    }
-    .stats-line span { display: flex; align-items: center; gap: 5px; }
-    .stats-line svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .stats-line .total { font-weight: 700; color: var(--text); }
 
     /* ── ADD FORM ── */
     .add-form {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 20px; margin-bottom: 20px; display: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
     .add-form.open { display: block; }
     .form-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px; }
@@ -219,18 +212,14 @@
     .form-row { display: grid; grid-template-columns: 1fr 110px; gap: 12px; margin-bottom: 16px; }
     @media (max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
 
-    .cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .cat-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
     .cat-pill {
-      display: flex; align-items: center; gap: 7px;
-      padding: 8px 14px; border-radius: 20px; font-size: 14px; font-weight: 600;
-      cursor: pointer; border: 2px solid transparent;
-      background: var(--surface2); color: var(--text-muted); transition: all .15s;
-      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700;
+      color: white; white-space: nowrap; letter-spacing: 0.1px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
     }
-    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .cat-pill.active { color: #fff; }
-    .cat-pill.add-pill { border-style: dashed; border-color: var(--border); }
-    .cat-pill.add-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
     .custom-row { display: none; align-items: center; gap: 8px; margin-bottom: 16px; }
     .custom-row.open { display: flex; }
@@ -240,47 +229,47 @@
     .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
     /* ── GROUPED ENTRIES ── */
-    .cat-group { margin-bottom: 24px; }
+    .cat-group { margin-bottom: 28px; }
     .cat-group-header {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
-      color: var(--text-muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 7px;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: 8px; padding: 0 2px;
     }
-    .cat-group-header svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .cat-group-header svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
     .cat-group-header .cat-count {
-      margin-left: auto; font-size: 12px; font-weight: 600;
+      margin-left: auto; font-size: 11px; font-weight: 700;
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 1px 8px;
+      border-radius: 20px; padding: 1px 8px; color: var(--text-muted);
     }
 
-    .entry-list { display: flex; flex-direction: column; gap: 3px; }
+    .entry-list { display: flex; flex-direction: column; gap: 4px; }
     .entry-row {
       display: flex; align-items: center; gap: 12px;
-      padding: 13px 15px; border-radius: 10px;
+      padding: 12px 15px; border-radius: 11px;
       background: var(--surface); border: 1px solid var(--border);
-      transition: background .1s;
+      transition: all .12s; box-shadow: 0 1px 2px rgba(0,0,0,.04);
     }
-    .entry-row:hover { background: var(--surface2); }
+    .entry-row:hover { background: var(--surface); border-color: #ccccd8; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
     .entry-row.draggable { cursor: grab; }
-    .entry-row.dragging { opacity: 0.5; background: var(--surface2); }
+    .entry-row.dragging { opacity: 0.4; background: var(--surface2); }
     .entry-row.drag-over { border-color: var(--accent); border-width: 2px; }
 
     /* Hide drag handle and delete when editing title */
     .entry-row.editing-title .drag-handle { display: none; }
     .entry-row.editing-title .delete-btn { display: none; }
-    .entry-title { flex: 1; font-size: 16px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-title { flex: 1; font-size: 15px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
     .del-btn {
       background: none; border: none; cursor: pointer;
       color: var(--text-muted); padding: 5px; border-radius: 7px;
       display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    .del-btn:hover { background: #ff5c7220; color: var(--danger); }
+    .del-btn:hover { background: rgba(230,57,70,.1); color: var(--danger); }
     .del-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
     .empty-state { text-align: center; padding: 60px 24px; color: var(--text-muted); }
-    .empty-state svg { width: 38px; height: 38px; stroke: var(--border); fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; stroke-linecap: round; stroke-linejoin: round; }
-    .empty-state p { font-size: 16px; }
+    .empty-state svg { width: 38px; height: 38px; stroke: #ccccd8; fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; stroke-linecap: round; stroke-linejoin: round; }
+    .empty-state p { font-size: 15px; }
 
     /* ── TOAST ── */
     .toast {
@@ -358,12 +347,7 @@
       </div>
     </div>
     <label>Category</label>
-    <div class="cat-pills" id="typePills"></div>
-    <div class="custom-row" id="customRow">
-      <input id="customCatInput" type="text" placeholder="Category name…" style="flex:1" />
-      <button class="btn btn-primary" onclick="confirmCustomCat()">Add</button>
-      <button class="btn btn-ghost" onclick="cancelCustomCat()">Cancel</button>
-    </div>
+    <select id="typePills" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;padding:12px 14px;width:100%;font-family:inherit;-webkit-appearance:none;outline:none;margin-bottom:16px;font-weight:500"></select>
     <div class="form-actions">
       <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
       <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
@@ -379,10 +363,6 @@
       </button>
       <div class="dropdown year-dropdown" id="yearDropdown"></div>
     </div>
-  </div>
-
-  <!-- TOOLBAR -->
-  <div class="toolbar">
     <div class="search-wrap">
       <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
       <button class="btn-icon" id="searchToggle">
@@ -391,28 +371,30 @@
     </div>
   </div>
 
-  <div class="stats-line" id="statsLine"></div>
+  <!-- STAT PILLS -->
+  <div class="cat-pills" id="statPills"></div>
+
   <div id="entriesList"></div>
 
 </div>
 
 <!-- Icon Picker Modal -->
-<div id="iconPickerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1001;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:400px;width:90%">
-    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Pick Icon</h3>
+<div id="iconPickerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:1001;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:400px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.14)">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text)">Pick Icon</h3>
     <div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:8px;margin-bottom:16px"></div>
     <button class="btn btn-ghost" onclick="document.getElementById('iconPickerModal').style.display='none'" style="width:100%">Cancel</button>
   </div>
 </div>
 
 <!-- Category Manager Modal -->
-<div id="catManagerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-height:80vh;overflow-y:auto;max-width:500px;width:90%">
-    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">Manage Categories</h2>
+<div id="catManagerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-height:80vh;overflow-y:auto;max-width:500px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.14)">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text)">Manage Categories</h2>
     <div id="catManagerList" style="margin-bottom:20px;max-height:300px;overflow-y:auto"></div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
-      <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add Category</button>
+      <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:15px;outline:none">
+      <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add</button>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-ghost" onclick="cancelCategoryChanges()" style="flex:1">Cancel</button>
@@ -438,19 +420,20 @@
   const auth = firebase.auth();
   const col  = db.collection('entries');
 
-  // ── Icons (Lucide Icons from CDN) ─────────────────────────
+  // ── Icons (SVG) ───────────────────────────────────────────
   const IC = {
-    film: '<svg data-lucide="film" width="20" height="20"></svg>',
-    tv: '<svg data-lucide="tv" width="20" height="20"></svg>',
-    bookCopy: '<svg data-lucide="book-copy" width="20" height="20"></svg>',
-    bookHeadphones: '<svg data-lucide="book-headphones" width="20" height="20"></svg>',
-    mic: '<svg data-lucide="mic" width="20" height="20"></svg>',
-    drama: '<svg data-lucide="drama" width="20" height="20"></svg>',
-    messageCircle: '<svg data-lucide="message-circle" width="20" height="20"></svg>',
-    gamepad2: '<svg data-lucide="gamepad-2" width="20" height="20"></svg>',
-    music: '<svg data-lucide="music" width="20" height="20"></svg>',
-    micVocal: '<svg data-lucide="mic-vocal" width="20" height="20"></svg>',
-    check: '<svg data-lucide="check" width="20" height="20"></svg>'
+    film: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>',
+    tv: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><polyline points="16 16 12 20 8 16"/></svg>',
+    bookCopy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5h16v-13H4z"/><path d="M18.5 2h-13a2.5 2.5 0 0 0-2.5 2.5v15a2.5 2.5 0 0 0 2.5 2.5h13a2.5 2.5 0 0 0 2.5-2.5V4.5a2.5 2.5 0 0 0-2.5-2.5z"/></svg>',
+    bookHeadphones: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5h16v-13H4z"/><path d="M18.5 2h-13a2.5 2.5 0 0 0-2.5 2.5v15a2.5 2.5 0 0 0 2.5 2.5h13a2.5 2.5 0 0 0 2.5-2.5V4.5a2.5 2.5 0 0 0-2.5-2.5z"/><circle cx="12" cy="12" r="2"/></svg>',
+    mic: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>',
+    drama: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v10H6z"/><path d="M9 14v3m6-3v3M7 18h10"/></svg>',
+    messageCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    gamepad2: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><path d="M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>',
+    music: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    micVocal: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M5 8a2 2 0 0 1 2-2"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    tag: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 12l10 10 10-10z"/></svg>'
   };
 
   // ── Category Colors & Icons ───────────────────────────────
@@ -552,11 +535,6 @@
   document.getElementById('inputYear').value = selectedYear;
   buildTypePills();
   buildCatDropdown();
-
-  // Render Lucide icons
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
 
   function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
   setSyncStatus('syncing');
@@ -786,7 +764,7 @@
       search.id = 'iconSearchInput';
       search.type = 'text';
       search.placeholder = 'Search icons...';
-      search.style.cssText = 'width:100%;padding:10px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit';
+      search.style.cssText = 'width:100%;padding:10px 13px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;outline:none';
       search.addEventListener('input', showIconPicker);
       picker.insertBefore(search, picker.querySelector('#iconGrid'));
     }
@@ -794,7 +772,7 @@
     const filtered = CAT_ICON_KEYS.filter(key => key.includes(query));
     const grid = document.getElementById('iconGrid');
     grid.innerHTML = filtered.map(key => `
-      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;transition:all 0.2s;color:var(--text);font-size:20px" title="${key}">
+      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;transition:all 0.15s;color:var(--text)" title="${key}">
         ${CAT_ICONS[key]}
       </button>
     `).join('');
@@ -958,53 +936,28 @@
   }
 
   function buildTypePills() {
-    const wrap = document.getElementById('typePills');
-    wrap.innerHTML = allCats().map(c => {
-      const active = c.id === selectedCat;
-      const count = entries.filter(e => e.type === c.id).length;
-      return `<div class="cat-pill${active ? ' active' : ''}" data-cat="${c.id}" style="${active ? `background:${c.color};border-color:${c.color};color:white` : `border-color:${c.color}`}">
-        <div style="display:flex;align-items:center;gap:6px;width:100%">
-          <span style="display:flex">${c.icon}</span>
-          <span>${c.label}</span>
-          <span style="margin-left:auto;opacity:0.7;font-size:12px">${count}</span>
-        </div>
-      </div>`;
-    }).join('') + `<div class="cat-pill add-pill" id="addCustomBtn" style="border-color:var(--border)"><span style="display:flex">${IC.tag}</span> Custom…</div>`;
+    // Stat pills — displayed on the main page
+    const statWrap = document.getElementById('statPills');
+    const yearEntries = entries.filter(e => getYear(e) === selectedYear);
+    const total = yearEntries.length;
+    const allPill = total > 0 ? `<div class="cat-pill" style="background:#2d2d3a"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> ${total} All</div>` : '';
+    statWrap.innerHTML = allPill + allCats().map(c => {
+      const count = yearEntries.filter(e => e.type === c.id).length;
+      if (count === 0) return '';
+      return `<div class="cat-pill" style="background:${c.color}">${c.icon} ${count} ${c.label}</div>`;
+    }).join('');
 
-    wrap.querySelectorAll('.cat-pill[data-cat]').forEach(p =>
-      p.addEventListener('click', () => { selectedCat = p.dataset.cat; buildTypePills(); renderEntries(); if (window.lucide) window.lucide.createIcons(); })
-    );
-    document.getElementById('addCustomBtn').addEventListener('click', () => {
-      document.getElementById('customRow').classList.add('open');
-      document.getElementById('customCatInput').focus();
-    });
-
-    // Render Lucide icons after pills are rendered
-    if (window.lucide) {
-      setTimeout(() => window.lucide.createIcons(), 0);
+    // Category dropdown — inside the add-entry form
+    const sel = document.getElementById('typePills');
+    if (sel && sel.tagName === 'SELECT') {
+      const prev = sel.value;
+      sel.innerHTML = allCats().map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+      if (prev) sel.value = prev;
+      selectedCat = sel.value;
+      sel.onchange = () => { selectedCat = sel.value; };
     }
   }
 
-  function confirmCustomCat() {
-    const val = document.getElementById('customCatInput').value.trim();
-    if (!val) return;
-    if (!customCats.includes(val) && !BUILT_IN.find(c => c.id === val)) {
-      customCats.push(val);
-      localStorage.setItem('customCats', JSON.stringify(customCats));
-    }
-    selectedCat = val;
-    cancelCustomCat();
-    buildTypePills();
-    buildCatDropdown();
-  }
-  function cancelCustomCat() {
-    document.getElementById('customRow').classList.remove('open');
-    document.getElementById('customCatInput').value = '';
-  }
-  document.getElementById('customCatInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') confirmCustomCat();
-    if (e.key === 'Escape') cancelCustomCat();
-  });
 
   async function addEntry() {
     const title = document.getElementById('inputTitle').value.trim();
@@ -1085,7 +1038,7 @@
   }
 
   // ── Render ────────────────────────────────────────────────
-  function renderAll() { buildYearDropdown(); renderStats(); renderEntries(); buildCatDropdown(); }
+  function renderAll() { buildYearDropdown(); buildTypePills(); renderEntries(); buildCatDropdown(); }
 
   function renderStats() {
     const yearEntries = entries.filter(e => getYear(e) === selectedYear);
