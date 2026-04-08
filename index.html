@@ -421,7 +421,10 @@
       <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
       <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add Category</button>
     </div>
-    <button class="btn btn-ghost" onclick="closeCategories()" style="width:100%">Done</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="cancelCategoryChanges()" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCategoryChanges()" style="flex:1">Save</button>
+    </div>
   </div>
 </div>
 
@@ -442,26 +445,32 @@
   const auth = firebase.auth();
   const col  = db.collection('entries');
 
-  // ── Icons ─────────────────────────────────────────────────
+  // ── Icons (Tabler Icons) ──────────────────────────────────
   const IC = {
-    movies:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>`,
-    tv:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="15" rx="2"/><polyline points="8 21 12 17 16 21"/></svg>`,
-    book:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
-    gamepad:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><path d="M9.45 5.28A2 2 0 0 1 11.4 4h1.2a2 2 0 0 1 1.95 1.28l1.03 2.76A2 2 0 0 0 17.54 9.3l.53.13A2 2 0 0 1 19.5 11.33V14a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-2.67a2 2 0 0 1 1.43-1.91l.53-.13a2 2 0 0 0 1.96-1.26z"/></svg>`,
-    headphones: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>`,
-    mic:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
-    scroll:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></svg>`,
-    music:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-    tag:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
-    list:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
-    check:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-    signout:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+    movies:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>`,
+    tv:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polyline points="8 21 12 17 16 21"/></svg>`,
+    book:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0"/><path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>`,
+    gamepad:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><circle cx="17" cy="17" r="1"/><path d="M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>`,
+    audiobooks:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v8"/><path d="M9 17h6"/></svg>`,
+    podcasts:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="1"/><path d="M12 11a4 4 0 0 0-4 4v2"/><path d="M12 7a8 8 0 0 0-8 8v2"/><path d="M16 15v2a4 4 0 0 0 4-4"/><path d="M20 11v2a8 8 0 0 0-8-8"/></svg>`,
+    comics:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7"/><circle cx="17" cy="8" r="3"/><path d="M14.5 20l2.5-7.5 2.5 7.5"/></svg>`,
+    theatre:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 6L2 4M21 6l1-2M3 18l-1 2M21 18l1 2"/><rect x="7" y="9" width="10" height="6"/></svg>`,
+    concerts:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L5 7M15 3l4 4M5 19l4-4M19 19l-4-4"/><circle cx="12" cy="12" r="4"/></svg>`,
+    standup:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"/><path d="M12 8v6M9 12h6"/></svg>`,
+    tag:         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>`,
+    list:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+    check:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    signout:     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
   };
 
   // ── Category Colors & Icons ───────────────────────────────
   const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d', '#eb2f96'];
-  const CAT_ICON_KEYS = ['movies', 'tv', 'book', 'gamepad', 'headphones', 'mic', 'scroll', 'music', 'tag', 'list'];
-  const CAT_ICONS = { movies: IC.movies, tv: IC.tv, book: IC.book, gamepad: IC.gamepad, headphones: IC.headphones, mic: IC.mic, scroll: IC.scroll, music: IC.music, tag: IC.tag, list: IC.list };
+  const CAT_ICONS = {
+    movies: IC.movies, tv: IC.tv, book: IC.book, gamepad: IC.gamepad, audiobooks: IC.audiobooks,
+    podcasts: IC.podcasts, comics: IC.comics, theatre: IC.theatre, concerts: IC.concerts, standup: IC.standup,
+    tag: IC.tag, list: IC.list, check: IC.check, signout: IC.signout
+  };
+  const CAT_ICON_KEYS = Object.keys(CAT_ICONS);
 
   // ── Categories ────────────────────────────────────────────
   const DEFAULT_CATS = [
@@ -469,10 +478,12 @@
     { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv, iconKey: 'tv', isBuiltIn: true },
     { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.book, iconKey: 'book', isBuiltIn: true },
     { id: 'Video Games', label: 'Video Games', color: '#722ed1', icon: IC.gamepad, iconKey: 'gamepad', isBuiltIn: true },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: IC.headphones, iconKey: 'headphones', isBuiltIn: true },
-    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: IC.mic, iconKey: 'mic', isBuiltIn: true },
-    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.scroll, iconKey: 'scroll', isBuiltIn: true },
-    { id: 'Concerts',    label: 'Concerts',    color: '#fa541c', icon: IC.music, iconKey: 'music', isBuiltIn: true },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#7c6cff', icon: IC.audiobooks, iconKey: 'audiobooks', isBuiltIn: true },
+    { id: 'Podcasts',    label: 'Podcasts',    color: '#faad14', icon: IC.podcasts, iconKey: 'podcasts', isBuiltIn: true },
+    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.comics, iconKey: 'comics', isBuiltIn: true },
+    { id: 'Theatre',     label: 'Theatre',     color: '#fa541c', icon: IC.theatre, iconKey: 'theatre', isBuiltIn: true },
+    { id: 'Concerts',    label: 'Concerts',    color: '#f5222d', icon: IC.concerts, iconKey: 'concerts', isBuiltIn: true },
+    { id: 'Stand-up',    label: 'Stand-up',    color: '#eb2f96', icon: IC.standup, iconKey: 'standup', isBuiltIn: true },
   ];
 
   // ── State ─────────────────────────────────────────────────
@@ -777,23 +788,71 @@
   document.addEventListener('click', closeAllDropdowns);
 
   // ── Category Manager ───────────────────────────────────────
+  let categoryBackup = null;
+
   function openCategories() {
     closeAllDropdowns();
+    // Create backup of current categories before any changes
+    categoryBackup = JSON.parse(JSON.stringify(allCategoriesData));
     showCategoryList();
     showIconPicker();
     document.getElementById('catManagerModal').style.display = 'flex';
   }
 
-  function closeCategories() {
+  function cancelCategoryChanges() {
+    // Restore from backup
+    if (categoryBackup) {
+      allCategoriesData = JSON.parse(JSON.stringify(categoryBackup));
+    }
+    // Close modal and reset
     document.getElementById('catManagerModal').style.display = 'none';
     document.getElementById('newCatName').value = '';
+    categoryBackup = null;
+    // Rebuild UI to reflect restored state
+    buildTypePills();
+    buildCatDropdown();
+    renderEntries();
   }
 
+  function saveCategoryChanges() {
+    // Categories were already saved to localStorage by individual functions
+    // Just close the modal and clear backup
+    document.getElementById('catManagerModal').style.display = 'none';
+    document.getElementById('newCatName').value = '';
+    categoryBackup = null;
+  }
+
+  // Close modals when clicking on the backdrop
+  document.getElementById('catManagerModal').addEventListener('click', (e) => {
+    if (e.target.id === 'catManagerModal') {
+      cancelCategoryChanges();
+    }
+  });
+
+  document.getElementById('iconPickerModal').addEventListener('click', (e) => {
+    if (e.target.id === 'iconPickerModal') {
+      document.getElementById('iconPickerModal').style.display = 'none';
+    }
+  });
+
   function showIconPicker() {
+    const searchInput = document.getElementById('iconSearchInput');
+    if (!searchInput) {
+      const picker = document.getElementById('iconPickerModal').querySelector('div > div');
+      const search = document.createElement('input');
+      search.id = 'iconSearchInput';
+      search.type = 'text';
+      search.placeholder = 'Search icons...';
+      search.style.cssText = 'width:100%;padding:10px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit';
+      search.addEventListener('input', showIconPicker);
+      picker.insertBefore(search, picker.querySelector('#iconGrid'));
+    }
+    const query = (document.getElementById('iconSearchInput')?.value || '').toLowerCase();
+    const filtered = CAT_ICON_KEYS.filter(key => key.includes(query));
     const grid = document.getElementById('iconGrid');
-    grid.innerHTML = CAT_ICON_KEYS.map(key => `
-      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;transition:all 0.2s;font-size:20px">
-        ${CAT_ICONS[key]}
+    grid.innerHTML = filtered.map(key => `
+      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;transition:all 0.2s;font-size:20px" title="${key}">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">${CAT_ICONS[key].match(/<path[^>]*\/?>|<line[^>]*\/?>|<circle[^>]*\/?>|<rect[^>]*\/?>|<polyline[^>]*\/?>|<svg[^>]*>[\s\S]*?<\/svg>/gi)?.join('') || ''}</svg>
       </button>
     `).join('');
   }
@@ -818,15 +877,39 @@
     list.innerHTML = allCats().map(cat => `
       <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
         <div style="width:28px;height:28px;border-radius:6px;background:${cat.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">${cat.icon}</div>
-        <div class="cat-name-editable" data-id="${cat.id}" contenteditable="true" style="flex:1;padding:4px 6px;border-radius:4px;outline:1px solid transparent" onblur="saveCatName('${cat.id}')" onkeydown="handleCatNameKeydown(event, '${cat.id}')">${escHtml(cat.label)}</div>
+        <span class="cat-name-display" data-id="${cat.id}" style="flex:1;font-weight:600">${escHtml(cat.label)}</span>
+        <button class="btn-icon" onclick="startEditCat('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Rename">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
         <button class="btn-icon" onclick="openIconPicker('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Change icon">
-          ${cat.icon}
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
         </button>
         <button class="btn-icon" onclick="deleteCatWithCheck('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Delete">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
     `).join('');
+  }
+
+  function startEditCat(id) {
+    const display = document.querySelector(`.cat-name-display[data-id="${id}"]`);
+    if (!display) return;
+    const cat = allCategoriesData.find(c => c.id === id);
+    const input = document.createElement('div');
+    input.className = 'cat-name-editable';
+    input.dataset.id = id;
+    input.contentEditable = 'true';
+    input.textContent = cat.label;
+    input.style.cssText = 'flex:1;padding:4px 6px;border-radius:4px;outline:2px solid var(--accent)';
+    input.onblur = () => saveCatName(id);
+    input.onkeydown = (e) => handleCatNameKeydown(e, id);
+    display.replaceWith(input);
+    input.focus();
+    const range = document.createRange();
+    range.selectNodeContents(input);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
   }
 
   function handleCatNameKeydown(event, catId) {
