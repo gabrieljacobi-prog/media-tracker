@@ -553,37 +553,24 @@
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ 'prompt': 'select_account' });
 
-    // Detect Android — use redirect for reliable account chooser + consent screen
-    const isAndroid = /Android/.test(navigator.userAgent);
-
-    if (isAndroid) {
-      // Mobile: use redirect flow (designed for mobile, shows account chooser & consent)
-      auth.signInWithRedirect(provider).catch(err => {
-        showAuthError(err.code || err.message || 'Sign-in failed.');
-        console.error('Redirect error:', err);
+    // Use popup on all platforms with triple-redundancy fallback
+    auth.signInWithPopup(provider).then(result => {
+      // Primary: popup completed successfully
+      currentUser = result.user;
+      isOwner = result.user && result.user.email === OWNER_EMAIL;
+      updateAuthUI(result.user);
+      renderAll();
+    }).catch(err => {
+      console.error('Popup error:', err);
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        return; // user cancelled
+      }
+      // If popup fails, try redirect as fallback
+      auth.signInWithRedirect(provider).catch(redirectErr => {
+        showAuthError(redirectErr.code || redirectErr.message || 'Sign-in failed.');
+        console.error('Redirect fallback error:', redirectErr);
       });
-    } else {
-      // Desktop: use popup (faster, stays on page)
-      auth.signInWithPopup(provider).then(result => {
-        currentUser = result.user;
-        isOwner = result.user && result.user.email === OWNER_EMAIL;
-        updateAuthUI(result.user);
-        renderAll();
-      }).catch(err => {
-        console.error('Popup error:', err);
-        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-          return;
-        }
-        if (err.code === 'auth/popup-blocked') {
-          auth.signInWithRedirect(provider).catch(redirectErr => {
-            showAuthError(redirectErr.code || redirectErr.message || 'Sign-in failed.');
-            console.error('Redirect fallback error:', redirectErr);
-          });
-        } else {
-          showAuthError(err.code || err.message || 'Sign-in failed.');
-        }
-      });
-    }
+    });
   }
 
   // ── Kebab menu ────────────────────────────────────────────
