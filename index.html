@@ -479,6 +479,11 @@
   auth.getRedirectResult().then(result => {
     if (result && result.user) {
       console.log('Redirect sign-in completed:', result.user.email);
+      // Explicitly update auth state (don't rely on onAuthStateChanged alone)
+      currentUser = result.user;
+      isOwner = result.user.email === OWNER_EMAIL;
+      updateAuthUI(result.user);
+      renderAll();
     }
   }).catch(err => {
     console.error('getRedirectResult error:', err);
@@ -520,9 +525,17 @@
       return;
     }
     const provider = new firebase.auth.GoogleAuthProvider();
-    // Try popup first on all platforms. If Chrome Android opens it as a
-    // same-tab navigation (older behavior), fall back to signInWithRedirect.
-    auth.signInWithPopup(provider).catch(err => {
+    // Force account chooser and consent screen on all platforms (especially Chrome Android)
+    provider.setCustomParameters({ 'prompt': 'select_account' });
+    // Try popup first on all platforms. On Chrome Android, the popup opens as a
+    // new tab; we need to explicitly sync from the result since cross-tab sync may be delayed.
+    auth.signInWithPopup(provider).then(result => {
+      // Popup successful — update immediately without waiting for onAuthStateChanged
+      currentUser = result.user;
+      isOwner = result.user && result.user.email === OWNER_EMAIL;
+      updateAuthUI(result.user);
+      renderAll();
+    }).catch(err => {
       console.error('Popup error:', err);
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
         return; // user closed it — no error shown
