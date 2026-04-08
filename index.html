@@ -306,7 +306,6 @@
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span id="authMenuLabel">Sign in</span>
         </button>
-        <div class="dropdown-sep"></div>
         <button class="dropdown-item owner-only" id="editModeBtn" onclick="toggleEditMode()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span id="editModeLabel">Edit</span>
@@ -488,16 +487,26 @@
   // fallback and any browser where popup navigated the tab instead of opening one)
   auth.getRedirectResult().then(result => {
     if (result && result.user) {
-      console.log('Redirect sign-in completed:', result.user.email);
+      console.log('✓ Redirect sign-in completed:', result.user.email);
       // Explicitly update auth state (don't rely on onAuthStateChanged alone)
       currentUser = result.user;
       isOwner = result.user.email === OWNER_EMAIL;
       updateAuthUI(result.user);
       renderAll();
+    } else {
+      console.log('getRedirectResult: no pending redirect (result is null or missing user)');
+      // Fallback: check if user is already signed in (handles Chrome Custom Tabs edge case)
+      if (auth.currentUser) {
+        console.log('✓ User is signed in via auth.currentUser:', auth.currentUser.email);
+        currentUser = auth.currentUser;
+        isOwner = auth.currentUser.email === OWNER_EMAIL;
+        updateAuthUI(auth.currentUser);
+        renderAll();
+      }
     }
   }).catch(err => {
-    console.error('getRedirectResult error:', err);
-    showAuthError(err.code || err.message || 'Redirect sign-in failed. Try again or use a different browser.');
+    console.error('✗ getRedirectResult error:', err.code, err.message);
+    showAuthError('Sign-in failed (' + (err.code || 'unknown error') + '). Try again.');
   });
 
   auth.onAuthStateChanged(user => {
