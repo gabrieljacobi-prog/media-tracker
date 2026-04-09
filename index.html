@@ -226,7 +226,44 @@
     .custom-row input { font-size: 15px; padding: 10px 13px; }
     .custom-row .btn { padding: 10px 14px; font-size: 14px; }
 
-    .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    /* ── FORM CATEGORY PILLS ── */
+    .form-cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .form-cat-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+      color: white; opacity: 0.38; border: 2px solid transparent;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .form-cat-pill.selected { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+    .form-cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* ── STAR / FAVORITE ── */
+    .star-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: 5px; border-radius: 7px;
+      display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .star-btn:hover { color: #f5a623; opacity: 1; }
+    .star-btn.starred { color: #f5a623; }
+    .star-btn svg { width: 17px; height: 17px; }
+    .fav-badge {
+      color: #f5a623; flex-shrink: 0; display: flex; align-items: center; line-height: 1;
+    }
+    .fav-badge svg { width: 14px; height: 14px; }
+    .star-form-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: none; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 9px 14px; cursor: pointer; font-family: inherit;
+      font-size: 14px; font-weight: 600; color: var(--text-muted);
+      transition: all .15s; -webkit-tap-highlight-color: transparent;
+    }
+    .star-form-btn:hover { border-color: #f5a623; color: #f5a623; }
+    .star-form-btn.starred { border-color: #f5a623; color: #f5a623; background: rgba(245,166,35,.08); }
+    .star-form-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .form-actions { display: flex; align-items: center; gap: 8px; }
 
     /* ── GROUPED ENTRIES ── */
     .cat-group { margin-bottom: 28px; }
@@ -347,8 +384,13 @@
       </div>
     </div>
     <label>Category</label>
-    <select id="typePills" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;padding:12px 14px;width:100%;font-family:inherit;-webkit-appearance:none;outline:none;margin-bottom:16px;font-weight:500"></select>
+    <div id="formCatPills" class="form-cat-pills"></div>
     <div class="form-actions">
+      <button class="star-form-btn" id="favoriteToggle" onclick="toggleFormFavorite()">
+        <svg id="favoriteStarIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Favorite
+      </button>
+      <div style="flex:1"></div>
       <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
       <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
     </div>
@@ -447,7 +489,11 @@
     // Custom categories — Lucide `tag`
     tag: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor" stroke="none"/></svg>',
     // Sign out — Lucide `log-out`
-    signout: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>'
+    signout: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+    // Star outline
+    star: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    // Star filled
+    starFilled: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#f5a623" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
   };
 
   // ── Category Colors & Icons ───────────────────────────────
@@ -483,6 +529,7 @@
   let currentUser  = null;
   let editMode     = false;
   let draggedEntry = null;
+  let formFavorite = false;
 
   function loadAllCategories() {
     const stored = JSON.parse(localStorage.getItem('allCategories') || '{}');
@@ -950,7 +997,16 @@
   function toggleForm() {
     const form = document.getElementById('addForm');
     const open = form.classList.toggle('open');
-    if (open) { document.getElementById('inputTitle').focus(); buildTypePills(); }
+    if (open) {
+      document.getElementById('inputTitle').focus();
+      buildTypePills();
+      // Reset favorite state
+      formFavorite = false;
+      const btn = document.getElementById('favoriteToggle');
+      const icon = document.getElementById('favoriteStarIcon');
+      if (btn) btn.classList.remove('starred');
+      if (icon) icon.setAttribute('fill', 'none');
+    }
   }
 
   function buildTypePills() {
@@ -965,15 +1021,32 @@
       return `<div class="cat-pill" style="background:${c.color}">${c.icon} ${count} ${c.label}</div>`;
     }).join('');
 
-    // Category dropdown — inside the add-entry form
-    const sel = document.getElementById('typePills');
-    if (sel && sel.tagName === 'SELECT') {
-      const prev = sel.value;
-      sel.innerHTML = allCats().map(c => `<option value="${c.id}">${c.label}</option>`).join('');
-      if (prev) sel.value = prev;
-      selectedCat = sel.value;
-      sel.onchange = () => { selectedCat = sel.value; };
+    // Category pills — inside the add-entry form
+    const formPillsWrap = document.getElementById('formCatPills');
+    if (formPillsWrap) {
+      // Ensure selectedCat is valid
+      const cats = allCats();
+      if (!cats.find(c => c.id === selectedCat)) selectedCat = cats[0]?.id || '';
+      formPillsWrap.innerHTML = cats.map(c => `
+        <div class="form-cat-pill${c.id === selectedCat ? ' selected' : ''}"
+             style="background:${c.color}"
+             onclick="selectFormCat('${escHtml(c.id)}')">
+          ${c.icon} ${escHtml(c.label)}
+        </div>`).join('');
     }
+  }
+
+  function selectFormCat(id) {
+    selectedCat = id;
+    buildTypePills();
+  }
+
+  function toggleFormFavorite() {
+    formFavorite = !formFavorite;
+    const btn = document.getElementById('favoriteToggle');
+    const icon = document.getElementById('favoriteStarIcon');
+    if (btn) btn.classList.toggle('starred', formFavorite);
+    if (icon) icon.setAttribute('fill', formFavorite ? '#f5a623' : 'none');
   }
 
 
@@ -983,9 +1056,10 @@
     if (!title) { showToast('Please enter a title.'); return; }
     setSyncStatus('syncing');
     try {
-      await col.add({ title, year, type: selectedCat, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await col.add({ title, year, type: selectedCat, favorite: formFavorite, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       document.getElementById('inputTitle').value = '';
       document.getElementById('inputYear').value = selectedYear;
+      formFavorite = false;
       toggleForm();
       showToast('Saved!');
     } catch(e) {
@@ -1055,6 +1129,19 @@
     catch(e) { showToast('Error deleting.'); }
   }
 
+  // ── Favorite ──────────────────────────────────────────────
+  async function toggleFavorite(id) {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+    const newVal = !entry.favorite;
+    try {
+      await col.doc(id).update({ favorite: newVal });
+      showToast(newVal ? '⭐ Added to favorites!' : 'Removed from favorites.');
+    } catch(e) {
+      showToast('Error updating.');
+    }
+  }
+
   // ── Render ────────────────────────────────────────────────
   function renderAll() { buildYearDropdown(); buildTypePills(); renderEntries(); buildCatDropdown(); }
 
@@ -1093,6 +1180,9 @@
             return `
               <div class="entry-row draggable" draggable="true" data-id="${e.id}" style="display:flex;align-items:center;gap:8px">
                 <svg class="drag-handle" style="width:18px;height:18px;color:var(--text-muted);flex-shrink:0;cursor:grab" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+                <button class="star-btn${e.favorite ? ' starred' : ''}" onclick="toggleFavorite('${e.id}')" title="Toggle favorite">
+                  <svg viewBox="0 0 24 24" fill="${e.favorite ? '#f5a623' : 'none'}" stroke="${e.favorite ? '#f5a623' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
                 <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
                 <button class="btn-icon edit-title-btn" data-id="${e.id}" onclick="toggleTitleEdit('${e.id}')" style="padding:6px 8px;flex-shrink:0">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1104,6 +1194,7 @@
           } else {
             return `
               <div class="entry-row">
+                ${e.favorite ? `<span class="fav-badge"><svg viewBox="0 0 24 24" fill="#f5a623" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>` : ''}
                 <div class="entry-title">${escHtml(e.title)}</div>
               </div>`;
           }
@@ -1255,9 +1346,9 @@
   function exportCSV() {
     closeAllDropdowns();
     if (!entries.length) { showToast('Nothing to export yet.'); return; }
-    const rows = entries.map(e => [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type].join(','));
+    const rows = entries.map(e => [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type, e.favorite ? 'Yes' : 'No'].join(','));
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['Title,Year,Category\n' + rows.join('\n')], { type: 'text/csv' }));
+    a.href = URL.createObjectURL(new Blob(['Title,Year,Category,Favorite\n' + rows.join('\n')], { type: 'text/csv' }));
     a.download = `media-log-${selectedYear}.csv`;
     a.click();
     showToast('CSV exported!');
