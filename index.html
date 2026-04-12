@@ -145,12 +145,12 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 /* ── Add Form ─────────────────────────────────────────── */
 .add-form{
   display:none;background:var(--bg);border:2px solid var(--border-card);
-  border-radius:24px;padding:32px 24px;margin-bottom:0;
+  border-radius:24px;padding:32px 24px;margin-top:24px;margin-bottom:0;
   box-shadow:0 6px 4px rgba(0,0,0,.25);position:relative;
 }
 .add-form.open{display:block}
 @media(min-width:769px){
-  .add-form{max-width:580px}
+  .add-form{max-width:680px;margin-left:auto;margin-right:auto}
 }
 .add-form h3{font-size:18px;font-weight:700;margin-bottom:20px;color:var(--text);padding-right:40px}
 
@@ -208,8 +208,8 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   padding:8px 12px;border-radius:10px;transition:background .15s;
 }
 .fav-toggle:hover{background:var(--surface)}
-.fav-toggle i{fill:none;stroke:currentColor;transition:all .15s}
-.fav-toggle.starred i{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
+.fav-toggle i,.fav-toggle svg{fill:none;stroke:currentColor;transition:all .15s}
+.fav-toggle.starred i,.fav-toggle.starred svg{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
 
 /* ── Year + Search row ────────────────────────────────── */
 .year-search-row{
@@ -250,10 +250,10 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   display:none;align-items:center;justify-content:center;
   color:var(--text-muted);line-height:1;
 }
-.search-close-btn i{width:14px;height:14px}
+.search-close-btn i,.search-close-btn svg{width:16px;height:16px}
 
-/* Divider below year+search row */
-.year-divider{height:1.5px;background:var(--border);margin-bottom:28px}
+/* Divider below year+search row — bleeds full width past container padding */
+.year-divider{height:1.5px;background:var(--border);margin-bottom:28px;margin-left:-80px;margin-right:-80px}
 
 /* ── Stats area: counter + pills ─────────────────────── */
 .stats-area{
@@ -304,13 +304,13 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .cat-group-header{
   display:flex;align-items:center;gap:8px;margin-bottom:12px;
-  font-weight:700;font-size:15px;
+  font-weight:700;font-size:16px;
 }
-.cat-group-header i{width:16px;height:16px;flex-shrink:0}
+.cat-group-header i,.cat-group-header svg{width:16px;height:16px;flex-shrink:0}
 .cat-count{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:26px;height:26px;border-radius:16px;padding:0 8px;
-  font-weight:700;font-size:20px;color:white;margin-left:auto;
+  font-weight:700;font-size:16px;color:white;margin-left:auto;
 }
 .entry-list{display:flex;flex-direction:column;gap:2px}
 
@@ -325,16 +325,16 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 /* Star in normal view — only rendered when favorited, no outline otherwise */
 .fav-badge{flex-shrink:0;display:flex;align-items:center}
-.fav-badge i{width:15px;height:15px}
-/* Star in edit mode — outline for all, filled when starred */
+.fav-badge i,.fav-badge svg{width:15px;height:15px;fill:var(--gold);stroke:var(--gold)}
+/* Star in edit mode — outline idle, gold outline hover, filled when starred */
 .star-btn{
   background:none;border:none;cursor:pointer;padding:2px;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;color:var(--base1);transition:color .15s;
 }
-.star-btn i{width:15px;height:15px;fill:none;stroke:currentColor}
-.star-btn.starred i{fill:var(--gold);stroke:var(--gold)}
-.star-btn:not(.starred):hover i{stroke:var(--gold);color:var(--gold)}
+.star-btn i,.star-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;transition:fill .15s,stroke .15s}
+.star-btn.starred i,.star-btn.starred svg{fill:var(--gold);stroke:var(--gold)}
+.star-btn:not(.starred):hover i,.star-btn:not(.starred):hover svg{stroke:var(--gold);fill:rgba(245,166,35,.18)}
 
 /* Edit mode buttons */
 .btn-icon{
@@ -371,6 +371,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .menu-dropdown{right:120px}
   .container{padding:0 120px 80px}
   .entry-row{font-size:17px}
+  .year-divider{margin-left:-120px;margin-right:-120px}
 }
 
 /* ── Mobile ───────────────────────────────────────────── */
@@ -383,11 +384,13 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .logo-mobile{display:block}
 
   .container{padding:0 16px 48px}
-  .year-search-row{flex-direction:column;align-items:stretch;gap:12px;padding:16px 0}
-  .search-bar{width:100%}
+  .year-search-row{gap:12px;padding:16px 0}
+  .search-bar{flex:1;min-width:0}
+  .year-divider{margin-left:-16px;margin-right:-16px}
+  .stats-area{flex-direction:column;align-items:flex-start;gap:16px}
   .entries-columns{grid-template-columns:1fr}
   .entry-counter-num{font-size:48px}
-  .add-form{max-width:none;padding:24px 16px}
+  .add-form{max-width:none;padding:24px 16px;margin-left:0;margin-right:0}
 }
 </style>
 </head>
@@ -493,7 +496,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <script>
   // ── Firebase ──────────────────────────────────────────────
   const firebaseConfig = {
@@ -569,20 +572,33 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     if (e.createdAt && e.createdAt.seconds) return e.createdAt.seconds * 1000;
     return 0;
   }
+  // sortOrder falls back to createdAt millis for entries that predate this field
+  function getSortOrder(e) {
+    return e.sortOrder !== undefined ? e.sortOrder : getTimestamp(e);
+  }
 
   // ── Boot ──────────────────────────────────────────────────
   document.getElementById('yearLabel').textContent = selectedYear;
   document.getElementById('inputYear').value = selectedYear;
-  buildTypePills();
+  buildTypePills([]);
 
   function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
   setSyncStatus('syncing');
 
-  col.orderBy('createdAt', 'asc').onSnapshot(
+  col.onSnapshot(
     snap => {
-      entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      entries = snap.docs.map(d => {
+        const data = d.data();
+        // Normalize missing type
+        if (!data.type) data.type = 'Other';
+        // Normalize legacy date field → year
+        if (!data.year && data.date) data.year = parseInt(data.date.split('-')[0]);
+        return { id: d.id, ...data };
+      }).sort((a, b) => getSortOrder(a) - getSortOrder(b));
       setSyncStatus('synced');
       renderAll();
+      // Run one-time Firestore schema migration for the owner
+      if (isOwner && !localStorage.getItem('mt_migrated_v2')) migrateSchema();
     },
     err => { setSyncStatus('error'); console.error(err); }
   );
@@ -609,6 +625,14 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   auth.onAuthStateChanged(user => {
     currentUser = user;
     isOwner = !!(user && user.email === OWNER_EMAIL);
+    if (!user && editMode) {
+      editMode = false;
+      const btn = document.getElementById('editModeBtn');
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="pencil" width="16" height="16"></i><span>Edit</span>`;
+        lucide.createIcons({ el: btn });
+      }
+    }
     updateAuthUI(user);
     renderAll();
   });
@@ -750,6 +774,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
   function closeForm() {
     document.getElementById('addForm').classList.remove('open');
+    document.getElementById('inputTitle').value = '';
   }
 
   function toggleFormFavorite() {
@@ -783,15 +808,19 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
   async function addEntry() {
     const title = document.getElementById('inputTitle').value.trim();
-    const year  = document.getElementById('inputYear').value;
+    const year  = parseInt(document.getElementById('inputYear').value);
     if (!title) { showToast('Title is required.'); return; }
+    if (!year || year < 1900 || year > 2099) { showToast('A valid year is required.'); return; }
     try {
       await col.add({ title, type: selectedCat, year, favorite: formFavorite,
+        sortOrder: Date.now(),
         createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       document.getElementById('inputTitle').value = '';
       formFavorite = false;
       const btn = document.getElementById('favoriteToggle');
       if (btn) btn.classList.remove('starred');
+      const icon = document.getElementById('favoriteStarIcon');
+      if (icon) { icon.setAttribute('fill','none'); icon.setAttribute('stroke','currentColor'); }
       showToast('Entry added!');
     } catch(e) { showToast('Error adding entry.'); }
   }
@@ -808,16 +837,48 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     renderEntries();
   }
 
-  // ── Move / Swap ───────────────────────────────────────────
-  async function swapEntries(id1, id2) {
-    const e1 = entries.find(e => e.id === id1);
-    const e2 = entries.find(e => e.id === id2);
-    if (!e1 || !e2) return;
+  // ── Move / Reorder ────────────────────────────────────────
+  // Inserts the dragged entry just before the target entry in the global sort order.
+  // Uses fractional sortOrder values (midpoint); renumbers all entries if precision runs out.
+  async function moveEntry(draggedId, targetId) {
+    const sorted = [...entries].sort((a, b) => getSortOrder(a) - getSortOrder(b));
+    const targetIdx = sorted.findIndex(e => e.id === targetId);
+    if (targetIdx < 0) return;
+    const prev = sorted[targetIdx - 1];
+    const target = sorted[targetIdx];
+    const prevOrder = prev ? getSortOrder(prev) : getSortOrder(target) - 20000;
+    const gap = getSortOrder(target) - prevOrder;
     try {
-      await col.doc(id1).update({ createdAt: e2.createdAt });
-      await col.doc(id2).update({ createdAt: e1.createdAt });
+      if (gap < 1) {
+        // Precision exhausted — renumber all entries with clean spacing
+        const batch = db.batch();
+        sorted.forEach((e, i) => batch.update(col.doc(e.id), { sortOrder: (i + 1) * 10000 }));
+        await batch.commit();
+      } else {
+        await col.doc(draggedId).update({ sortOrder: prevOrder + gap / 2 });
+      }
       showToast('Reordered.');
     } catch(e) { showToast('Error reordering.'); }
+  }
+
+  // ── Schema Migration (owner-only, runs once) ──────────────
+  async function migrateSchema() {
+    const batch = db.batch();
+    let count = 0;
+    entries.forEach(e => {
+      const u = {};
+      // Fix year stored as string
+      if (e.year !== undefined && typeof e.year === 'string' && e.year !== '')
+        u.year = parseInt(e.year);
+      // Fix legacy date field
+      if (!e.year && e.date)
+        u.year = parseInt(e.date.split('-')[0]);
+      // Fix missing type
+      if (!e.type) u.type = 'Other';
+      if (Object.keys(u).length) { batch.update(col.doc(e.id), u); count++; }
+    });
+    if (count) await batch.commit();
+    localStorage.setItem('mt_migrated_v2', '1');
   }
 
   // ── Delete ────────────────────────────────────────────────
@@ -840,16 +901,16 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   }
 
   // ── Stats pills (filter bar) ──────────────────────────────
-  function buildTypePills() {
+  // baseEntries = already filtered by year+search (but NOT by category)
+  function buildTypePills(baseEntries) {
     const el = document.getElementById('statsPills');
-    const yearEntries = entries.filter(e => getYear(e) === selectedYear);
-    const total = yearEntries.length;
+    const total = baseEntries.length;
 
     // Update big counter
     document.getElementById('entryCountNum').textContent = total;
 
     const counts = {};
-    yearEntries.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+    baseEntries.forEach(e => { if (e.type) counts[e.type] = (counts[e.type] || 0) + 1; });
     const sorted = CATEGORIES.slice().sort(
       (a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label)
     );
@@ -875,31 +936,41 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
   function setFilter(f) {
     activeFilter = f;
-    buildTypePills();
     renderEntries();
   }
 
   // ── Render ────────────────────────────────────────────────
-  function renderAll() { buildYearDropdown(); buildTypePills(); renderEntries(); }
+  function renderAll() { buildYearDropdown(); renderEntries(); }
 
   function renderEntries() {
     const search = document.getElementById('searchInput').value.toLowerCase();
     const el = document.getElementById('entriesList');
     const searchMode = !!search;
 
-    const filtered = entries.filter(e => {
+    // All entries sorted by sortOrder (createdAt fallback for legacy entries)
+    const allSorted = [...entries].sort((a, b) => getSortOrder(a) - getSortOrder(b));
+
+    // Base set: year + search filtered, but NOT category filtered (used for pill counts)
+    const baseFiltered = allSorted.filter(e => {
       const matchYear   = searchMode || getYear(e) === selectedYear;
-      const matchCat    = activeFilter === 'All' || e.type === activeFilter;
       const matchSearch = !search || (e.title || '').toLowerCase().includes(search);
-      return matchYear && matchCat && matchSearch;
+      return matchYear && matchSearch;
     });
+    buildTypePills(baseFiltered);
+
+    // Display set: also apply active category filter
+    const filtered = activeFilter === 'All'
+      ? baseFiltered
+      : baseFiltered.filter(e => e.type === activeFilter);
 
     if (!filtered.length) {
       el.innerHTML = `<div class="empty-state">
         <i data-lucide="layout-dashboard"></i>
-        <p>${entries.filter(e => getYear(e) === selectedYear).length === 0
-          ? `Nothing logged for ${selectedYear} yet.`
-          : 'No entries match your filter.'}</p>
+        <p>${searchMode
+          ? 'No entries match your search.'
+          : allSorted.filter(e => getYear(e) === selectedYear).length === 0
+            ? `Nothing logged for ${selectedYear} yet.`
+            : 'No entries match your filter.'}</p>
       </div>`;
       lucide.createIcons({ el });
       return;
@@ -915,14 +986,14 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
       return cats.map(({ meta: cat, items: catItems }) => {
         const rows = catItems.map(e => {
           if (editMode && isOwner) {
-            // Edit mode: interactive star (outline if not fav, filled if fav)
+            // Edit mode: star to the right of title, filled if favorited
             return `
               <div class="entry-row draggable" draggable="true" data-id="${e.id}">
                 <i data-lucide="grip-vertical" class="drag-handle" style="width:18px;height:18px;flex-shrink:0"></i>
+                <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
                 <button class="star-btn${e.favorite ? ' starred' : ''}" onclick="toggleFavorite('${e.id}')" title="Toggle favorite">
                   <i data-lucide="star"></i>
                 </button>
-                <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
                 <button class="btn-icon edit-title-btn" data-id="${e.id}" onclick="toggleTitleEdit('${e.id}')">
                   <i data-lucide="square-pen" width="16" height="16"></i>
                 </button>
@@ -1013,7 +1084,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
       row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
       row.addEventListener('drop', async e => {
         e.preventDefault();
-        if (draggedEntry && draggedEntry !== row.dataset.id) await swapEntries(draggedEntry, row.dataset.id);
+        if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
       });
     });
 
@@ -1097,7 +1168,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     );
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['Title,Year,Category,Favorite\n' + rows.join('\n')], { type: 'text/csv' }));
-    a.download = `media-log-${selectedYear}.csv`;
+    a.download = `media-log-all.csv`;
     a.click();
     showToast('CSV exported!');
   }
