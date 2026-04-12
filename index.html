@@ -50,7 +50,7 @@
   background:var(--bg);
 }
 
-body{min-height:100vh;background:var(--bg)}
+body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
 /* ── Navbar ───────────────────────────────────────────── */
 .navbar{
@@ -130,7 +130,9 @@ body{min-height:100vh;background:var(--bg)}
 .container{
   padding:0 80px 64px;
   max-width:1440px;
+  width:100%;
   margin:0 auto;
+  overflow:hidden;
 }
 
 /* ── Auth Error ───────────────────────────────────────── */
@@ -288,6 +290,8 @@ body{min-height:100vh;background:var(--bg)}
   grid-template-columns:repeat(3,1fr);
   gap:24px;
   align-items:start;
+  width:100%;
+  min-width:0;
 }
 /* Each masonry col fills its grid cell */
 .masonry-col{width:100%;min-width:0}
@@ -296,6 +300,7 @@ body{min-height:100vh;background:var(--bg)}
 .cat-group{
   border:2px solid var(--border-card);border-radius:16px;padding:16px;
   margin-bottom:16px;background:var(--bg);
+  min-width:0;overflow:hidden;
 }
 .cat-group-header{
   display:flex;align-items:center;gap:8px;margin-bottom:12px;
