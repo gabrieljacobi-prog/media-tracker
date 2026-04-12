@@ -1,452 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Media Tracker</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ─────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    :root {
-      --bg: #f4f4f8;
-      --surface: #ffffff;
-      --surface2: #ededf3;
-      --border: #e2e2ea;
-      --accent: #6c5ce7;
-      --text: #111118;
-      --text-muted: #8888a0;
-      --danger: #e63946;
-      --radius: 14px;
-    }
+:root{
+  /* Solarized palette */
+  --base03:#002b36;
+  --base02:#073642;
+  --base01:#586e75;
+  --base00:#657b83;
+  --base0:#839496;
+  --base1:#93a1a1;
+  --base2:#eee8d5;
+  --base3:#fdf6e3;
+  --error:#ec5c59;
 
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-      -moz-text-size-adjust: 100%;
-    }
+  /* Category colors */
+  --cat-movies:#d6616b;
+  --cat-tv:#ad494a;
+  --cat-videogames:#7375b5;
+  --cat-comics:#bd9e39;
+  --cat-books:#8ca252;
+  --cat-concerts:#4a5584;
+  --cat-standup:#a55194;
+  --cat-audiobooks:#637939;
+  --cat-podcasts:#7b4173;
+  --cat-plays:#ce6dbd;
+  --cat-other:#586e75;
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 60px;
-      font-size: 16px;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      -moz-appearance: none;
-    }
+  /* Semantic tokens */
+  --bg:#fdf6e3;
+  --text:#002b36;
+  --text-secondary:#073642;
+  --text-muted:#586e75;
+  --text-placeholder:#657b83;
+  --border:#839496;
+  --border-card:#93a1a1;
+  --surface:#eee8d5;
+  --gold:#f5a623;
 
-    svg { display: block; flex-shrink: 0; }
+  font-family:'Bricolage Grotesque',system-ui,-apple-system,sans-serif;
+  font-size:16px;
+  color:var(--text);
+  background:var(--bg);
+}
 
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      gap: 10px;
-      box-shadow: 0 1px 0 var(--border);
-    }
+body{min-height:100vh;background:var(--bg)}
 
-    .logo { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-    .logo-icon {
-      width: 34px; height: 34px; background: var(--accent);
-      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .logo-icon svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .logo-text { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+/* ── Navbar ───────────────────────────────────────────── */
+.navbar{
+  height:88px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 80px;border-bottom:1.5px solid var(--border);position:relative;
+}
+.navbar-left{display:flex;align-items:center;gap:16px}
+.logo{font-size:24px;font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-0.02em}
+.sync-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sync-dot.synced{background:#859900}
+.sync-dot.syncing{background:var(--base00);animation:pulse 1.5s infinite}
+.sync-dot.error{background:var(--error)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-    .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.navbar-right{display:flex;align-items:center;gap:16px}
 
-    .sync-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--text-muted); flex-shrink: 0; transition: background .3s;
-    }
-    .sync-dot.synced  { background: #52c41a; }
-    .sync-dot.syncing { background: #faad14; animation: blink 1s infinite; }
-    .sync-dot.error   { background: var(--danger); }
-    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+/* Search bar */
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
+  padding:8px 16px;width:302px;transition:width .2s;
+}
+.search-bar input{
+  flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;
+  color:var(--text);min-width:0;
+}
+.search-bar input::placeholder{color:var(--text-placeholder)}
+.search-bar svg,.search-bar i{color:var(--text-muted);width:16px;height:16px;flex-shrink:0}
 
-    /* ── BUTTONS ── */
-    button { touch-action: manipulation; }
+/* Add button */
+.add-btn{
+  width:40px;height:40px;border-radius:50%;background:var(--base02);color:white;
+  border:none;cursor:pointer;display:none;align-items:center;justify-content:center;
+  transition:opacity .15s;
+}
+.add-btn.visible{display:flex}
+.add-btn:hover{opacity:.85}
+.add-btn i{width:20px;height:20px}
 
-    .btn {
-      border: none; cursor: pointer; font-family: inherit;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      transition: opacity .15s; border-radius: 10px;
-      font-size: 15px; font-weight: 600; -webkit-tap-highlight-color: transparent;
-    }
-    .btn:hover { opacity: .82; }
-    .btn-primary { background: var(--accent); color: #fff; padding: 10px 16px; }
-    .btn-ghost { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 16px; }
-    .btn-icon {
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-muted); padding: 9px 10px; border-radius: 10px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all .15s; -webkit-tap-highlight-color: transparent;
-    }
-    .btn-icon:hover { background: var(--surface2); opacity: 1; }
-    .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Menu button */
+.menu-btn{
+  width:40px;height:40px;border-radius:50%;background:none;border:1.5px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);
+  transition:background .15s;
+}
+.menu-btn:hover{background:var(--surface)}
 
-    .btn-add svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
-    .btn-add-label {}
-    @media (max-width: 400px) {
-      .btn-add-label { display: none; }
-      .btn-primary.btn-add { padding: 10px 11px; }
-    }
+/* ── Dropdown (shared) ────────────────────────────────── */
+.dropdown{
+  position:absolute;display:none;z-index:100;
+  background:var(--bg);border:1.5px solid var(--border-card);border-radius:24px;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);overflow:hidden;
+}
+.dropdown.open{display:block}
 
-    /* ── DROPDOWN ── */
-    .menu-wrap { position: relative; }
-    .dropdown {
-      display: none; position: absolute; right: 0; top: calc(100% + 8px);
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 6px; min-width: 190px;
-      z-index: 200; box-shadow: 0 8px 24px rgba(0,0,0,.10);
-    }
-    .dropdown.open { display: block; }
-    .dropdown-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 14px; border-radius: 8px; font-size: 15px;
-      color: var(--text-muted); cursor: pointer; transition: background .12s;
-      border: none; background: none; width: 100%; text-align: left;
-      font-family: inherit; -webkit-tap-highlight-color: transparent;
-    }
-    .dropdown-item:hover, .dropdown-item.selected { background: var(--surface2); color: var(--text); }
-    .dropdown-item.selected { color: var(--accent); }
-    .dropdown-item.danger { color: var(--danger); }
-    .dropdown-item.danger:hover { background: rgba(230,57,70,.08); }
-    .dropdown-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+/* Menu dropdown */
+.menu-dropdown{right:80px;top:72px;width:239px;padding:8px 0}
+.menu-dropdown .menu-email{padding:12px 20px;font-size:13px;color:var(--text-muted);display:none}
+.menu-dropdown .menu-item{
+  display:flex;align-items:center;gap:10px;padding:10px 20px;width:100%;
+  background:none;border:none;cursor:pointer;font-family:inherit;font-size:15px;
+  color:var(--base01);transition:background .1s;
+}
+.menu-dropdown .menu-item:hover{background:var(--surface)}
+.menu-dropdown .menu-item i{width:16px;height:16px;flex-shrink:0}
+.menu-dropdown .menu-item.danger{color:var(--error)}
+.menu-dropdown .menu-item.danger i{color:var(--error)}
+.menu-dropdown .menu-divider{height:1px;background:var(--border-card);margin:4px 0}
+.menu-dropdown .menu-item.hidden{display:none}
 
-    /* ── MAIN ── */
-    .container { max-width: 700px; margin: 0 auto; padding: 0 16px; }
+/* Year dropdown */
+.year-dropdown{left:80px;top:auto;min-width:120px;padding:6px 0}
+.year-dropdown .dropdown-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 16px;width:100%;background:none;border:none;cursor:pointer;
+  font-family:inherit;font-size:15px;color:var(--text);transition:background .1s;
+}
+.year-dropdown .dropdown-item:hover{background:var(--surface)}
+.year-dropdown .dropdown-item.selected{font-weight:700}
 
-    /* ── AUTH ERROR ── */
-    .auth-error {
-      background: rgba(230,57,70,.08); border: 1px solid rgba(230,57,70,.3);
-      border-radius: 10px; padding: 12px 16px; margin-top: 16px;
-      font-size: 14px; color: var(--danger); line-height: 1.5; display: none;
-    }
-    .auth-error.visible { display: block; }
-    .auth-error code { background: rgba(230,57,70,.12); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+/* ── Main Container ───────────────────────────────────── */
+.container{padding:32px 80px 64px}
 
-    /* ── YEAR NAV ── */
-    .year-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 22px 0 14px; gap: 10px;
-    }
-    .year-dropdown-wrap { position: relative; }
-    .year-btn {
-      display: flex; align-items: center; gap: 8px;
-      background: none; border: none; cursor: pointer;
-      font-family: inherit; color: var(--text); padding: 4px 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .year-label { font-size: 36px; font-weight: 900; letter-spacing: -2px; line-height: 1; color: var(--text); }
-    .year-btn .chevron { width: 20px; height: 20px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
-    .year-btn.open .chevron { transform: rotate(180deg); }
-    .year-dropdown { left: 0; right: auto; min-width: 130px; max-height: 280px; overflow-y: auto; }
-    .year-dropdown .dropdown-item { font-size: 16px; font-weight: 600; justify-content: space-between; }
+/* ── Auth Error ───────────────────────────────────────── */
+.auth-error{
+  display:none;background:var(--error);color:white;text-align:center;
+  padding:10px 16px;border-radius:12px;margin-bottom:16px;font-size:14px;
+}
+.auth-error.visible{display:block}
 
-    /* ── ADD ENTRY BUTTON in year bar ── */
-    .owner-only { display: none !important; }
-    .owner-only.visible { display: flex !important; }
+/* ── Add Form ─────────────────────────────────────────── */
+.add-form{
+  display:none;background:var(--bg);border:1.5px solid var(--border-card);
+  border-radius:24px;padding:32px 24px;margin-bottom:32px;
+  box-shadow:0 6px 4px rgba(0,0,0,.25);
+}
+.add-form.open{display:block}
+.add-form h3{font-size:18px;font-weight:700;margin-bottom:20px;color:var(--text)}
+.form-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.form-input{
+  flex:1;min-width:0;padding:10px 14px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:12px;font-family:inherit;
+  font-size:15px;color:var(--text);outline:none;transition:border-color .15s;
+}
+.form-input:focus{border-color:var(--base02)}
+.form-input::placeholder{color:var(--text-placeholder)}
+.year-input{width:90px;flex:none}
+.form-cat-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.form-cat-pill{
+  padding:6px 14px;border-radius:16px;border:1.5px solid var(--border-card);
+  background:none;font-family:inherit;font-size:13px;color:var(--text-muted);
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
+}
+.form-cat-pill.active{color:white;border-color:transparent}
+.form-actions{display:flex;gap:12px;align-items:center}
+.btn-submit{
+  padding:10px 24px;background:var(--base02);color:white;border:none;
+  border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;
+  cursor:pointer;transition:opacity .15s;
+}
+.btn-submit:hover{opacity:.85}
+.fav-toggle{
+  display:flex;align-items:center;gap:6px;background:none;border:none;
+  cursor:pointer;font-family:inherit;font-size:14px;color:var(--text-muted);
+  padding:8px 12px;border-radius:10px;transition:background .15s;
+}
+.fav-toggle:hover{background:var(--surface)}
+.fav-toggle.starred i{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
 
-    /* ── TOOLBAR ── */
+/* ── Year bar ─────────────────────────────────────────── */
+.year-bar{display:flex;align-items:baseline;gap:16px;margin-bottom:12px;position:relative}
+.year-btn{
+  font-family:inherit;font-size:96px;font-weight:800;color:var(--text);
+  background:none;border:none;cursor:pointer;line-height:1;letter-spacing:-0.03em;
+  transition:opacity .15s;
+}
+.year-btn:hover{opacity:.7}
+.year-btn.open{opacity:.7}
 
-    .cat-filter-wrap { position: relative; }
-    .cat-filter-btn {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 13px; cursor: pointer;
-      font-size: 14px; font-weight: 600; color: var(--text-muted);
-      transition: all .15s; font-family: inherit; white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cat-filter-btn:hover, .cat-filter-btn.open { border-color: var(--accent); color: var(--text); }
-    .cat-filter-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .cat-filter-btn .chevron { width: 14px; height: 14px; opacity: .5; transition: transform .2s; }
-    .cat-filter-btn.open .chevron { transform: rotate(180deg); }
+/* ── Stats pills ──────────────────────────────────────── */
+.stats-row{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;align-items:center;
+}
+.stat-pill{
+  display:flex;align-items:center;gap:6px;padding:4px 14px;
+  border-radius:16px;border:1.5px solid var(--border-card);background:none;
+  font-family:inherit;font-size:14px;color:var(--text-muted);cursor:pointer;
+  transition:all .15s;
+}
+.stat-pill.active{color:white;border-color:transparent}
+.stat-pill .pill-count{font-weight:700;font-size:13px;margin-left:2px}
 
-    .search-wrap { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; overflow: hidden; }
-    .search-input-field {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-size: 15px;
-      padding: 9px 13px; outline: none; font-family: inherit;
-      max-width: 0; min-width: 0; width: 100%;
-      opacity: 0; transition: max-width .25s ease, opacity .2s, border-color .15s;
-      pointer-events: none; -webkit-appearance: none;
-      box-shadow: 0 1px 3px rgba(0,0,0,.05);
-    }
-    .search-input-field.open { max-width: 200px; opacity: 1; pointer-events: all; }
-    @media (max-width: 400px) { .search-input-field.open { max-width: 140px; } }
-    .search-input-field:focus { border-color: var(--accent); }
+/* ── Entries layout ───────────────────────────────────── */
+.entries-columns{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:32px;align-items:start;
+}
 
+/* ── Category card ────────────────────────────────────── */
+.cat-group{
+  border:1.5px solid var(--border-card);border-radius:16px;padding:16px;
+  margin-bottom:16px;background:var(--bg);
+}
+.cat-group-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;
+  font-weight:700;font-size:15px;
+}
+.cat-group-header i{width:16px;height:16px;flex-shrink:0}
+.cat-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:24px;height:24px;border-radius:16px;padding:0 8px;
+  font-weight:700;font-size:20px;color:white;margin-left:auto;
+}
+.entry-list{display:flex;flex-direction:column;gap:4px}
 
-    /* ── ADD FORM ── */
-    .add-form {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px; margin-bottom: 20px; display: none;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    }
-    .add-form.open { display: block; }
-    .form-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: 16px; }
-    label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 7px; }
-    input[type=text], input[type=number] {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-size: 16px;
-      padding: 12px 14px; outline: none; transition: border-color .15s;
-      font-family: inherit; width: 100%; -webkit-appearance: none;
-    }
-    input:focus { border-color: var(--accent); }
-    .form-row { display: grid; grid-template-columns: 1fr 110px; gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 400px) { .form-row { grid-template-columns: 1fr; } }
+/* ── Entry row ────────────────────────────────────────── */
+.entry-row{
+  display:flex;align-items:center;gap:8px;padding:4px 0;
+  font-size:15px;color:var(--text-secondary);
+}
+.entry-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.fav-badge i{width:16px;height:16px;flex-shrink:0}
+.star-btn{
+  background:none;border:none;cursor:pointer;padding:2px;display:flex;
+  align-items:center;justify-content:center;
+}
+.star-btn i{width:16px;height:16px;color:var(--text-muted)}
+.star-btn.starred i{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
 
-    .cat-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
-    .cat-pill {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 700;
-      color: white; white-space: nowrap; letter-spacing: 0.1px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.15);
-    }
-    .cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+/* Edit mode buttons */
+.btn-icon{
+  background:none;border:none;cursor:pointer;padding:4px;display:flex;
+  align-items:center;justify-content:center;color:var(--text-muted);border-radius:6px;
+  transition:background .15s;
+}
+.btn-icon:hover{background:var(--surface)}
+.del-btn{color:var(--error)}
+.del-btn:hover{background:rgba(236,92,89,.1)}
+.drag-handle{cursor:grab;color:var(--text-muted)}
+.entry-row.dragging{opacity:.4}
+.entry-row.drag-over{border-top:2px solid var(--base02)}
 
-    .custom-row { display: none; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .custom-row.open { display: flex; }
-    .custom-row input { font-size: 15px; padding: 10px 13px; }
-    .custom-row .btn { padding: 10px 14px; font-size: 14px; }
+/* ── Empty State ──────────────────────────────────────── */
+.empty-state{
+  text-align:center;padding:64px 24px;color:var(--text-muted);
+  grid-column:1/-1;
+}
+.empty-state i{width:48px;height:48px;margin-bottom:12px;opacity:.5}
+.empty-state p{font-size:15px}
 
-    /* ── FORM CATEGORY PILLS ── */
-    .form-cat-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-    .form-cat-pill {
-      display: flex; align-items: center; gap: 6px;
-      padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 700;
-      cursor: pointer; transition: all .15s; white-space: nowrap;
-      color: white; opacity: 0.38; border: 2px solid transparent;
-      -webkit-tap-highlight-color: transparent; user-select: none;
-    }
-    .form-cat-pill.selected { opacity: 1; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
-    .form-cat-pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+/* ── Toast ────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--base02);color:white;padding:10px 24px;border-radius:12px;
+  font-size:14px;opacity:0;pointer-events:none;transition:all .25s;z-index:999;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    /* ── STAR / FAVORITE ── */
-    .star-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-muted); padding: 5px; border-radius: 7px;
-      display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .star-btn:hover { color: #f5a623; opacity: 1; }
-    .star-btn.starred { color: #f5a623; }
-    .star-btn svg { width: 17px; height: 17px; }
-    .fav-badge {
-      color: #f5a623; flex-shrink: 0; display: flex; align-items: center; line-height: 1;
-    }
-    .fav-badge svg { width: 14px; height: 14px; }
-    .star-form-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: none; border: 1.5px solid var(--border); border-radius: 10px;
-      padding: 9px 14px; cursor: pointer; font-family: inherit;
-      font-size: 14px; font-weight: 600; color: var(--text-muted);
-      transition: all .15s; -webkit-tap-highlight-color: transparent;
-    }
-    .star-form-btn:hover { border-color: #f5a623; color: #f5a623; }
-    .star-form-btn.starred { border-color: #f5a623; color: #f5a623; background: rgba(245,166,35,.08); }
-    .star-form-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
-
-    .form-actions { display: flex; align-items: center; gap: 8px; }
-
-    /* ── GROUPED ENTRIES ── */
-    .cat-group { margin-bottom: 28px; }
-    .cat-group-header {
-      display: flex; align-items: center; gap: 7px;
-      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px;
-      margin-bottom: 8px; padding: 0 2px;
-    }
-    .cat-group-header svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-    .cat-group-header .cat-count {
-      margin-left: auto; font-size: 11px; font-weight: 700;
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 1px 8px; color: var(--text-muted);
-    }
-
-    .entry-list { display: flex; flex-direction: column; gap: 4px; }
-    .entry-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 15px; border-radius: 11px;
-      background: var(--surface); border: 1px solid var(--border);
-      transition: all .12s; box-shadow: 0 1px 2px rgba(0,0,0,.04);
-    }
-    .entry-row:hover { background: var(--surface); border-color: #ccccd8; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
-    .entry-row.draggable { cursor: grab; }
-    .entry-row.dragging { opacity: 0.4; background: var(--surface2); }
-    .entry-row.drag-over { border-color: var(--accent); border-width: 2px; }
-
-    /* Hide drag handle and delete when editing title */
-    .entry-row.editing-title .drag-handle { display: none; }
-    .entry-row.editing-title .delete-btn { display: none; }
-    .entry-title { flex: 1; font-size: 15px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-    .del-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--text-muted); padding: 5px; border-radius: 7px;
-      display: flex; align-items: center; transition: all .15s; flex-shrink: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .del-btn:hover { background: rgba(230,57,70,.1); color: var(--danger); }
-    .del-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-
-    .empty-state { text-align: center; padding: 60px 24px; color: var(--text-muted); }
-    .empty-state svg { width: 38px; height: 38px; stroke: #ccccd8; fill: none; stroke-width: 1.5; display: block; margin: 0 auto 14px; stroke-linecap: round; stroke-linejoin: round; }
-    .empty-state p { font-size: 15px; }
-
-    /* ── TOAST ── */
-    .toast {
-      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(10px);
-      background: var(--accent); color: #fff; padding: 12px 22px; border-radius: 12px;
-      font-size: 15px; font-weight: 600; white-space: nowrap;
-      opacity: 0; transition: all .25s; pointer-events: none; z-index: 999;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  </style>
+/* ── Mobile ───────────────────────────────────────────── */
+@media(max-width:768px){
+  .navbar{height:64px;padding:0 16px}
+  .menu-dropdown{right:16px;top:56px}
+  .year-dropdown{left:16px}
+  .search-bar{width:171px}
+  .container{padding:24px 16px 48px}
+  .year-btn{font-size:64px}
+  .entries-columns{grid-template-columns:1fr}
+  .add-form{padding:24px 16px}
+}
+</style>
 </head>
 <body>
-
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>
-    </div>
-    <span class="logo-text">Media Tracker</span>
+<!-- ── Navbar ────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <span class="logo">Media Tracker</span>
+    <span class="sync-dot" id="syncDot"></span>
   </div>
-  <div class="header-right">
-    <div class="sync-dot syncing" id="syncDot"></div>
-    <!-- Kebab menu -->
-    <div class="menu-wrap">
-      <button class="btn-icon" id="menuBtn">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
-      </button>
-      <div class="dropdown" id="menuDropdown">
-        <!-- Signed-in email label — shown only when signed in -->
-        <div id="authEmailRow" style="display:none;padding:8px 14px 4px;font-size:12px;color:var(--text-muted);word-break:break-all"></div>
-        <!-- Auth item — updated dynamically -->
-        <button class="dropdown-item" id="authMenuItem" onclick="handleAuthClick()">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span id="authMenuLabel">Sign in</span>
-        </button>
-        <button class="dropdown-item owner-only" id="editModeBtn" onclick="toggleEditMode()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          <span id="editModeLabel">Edit</span>
-        </button>
-        <button class="dropdown-item owner-only" id="catManagerBtn" onclick="openCategories()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="7" cy="17" r="1"/><line x1="12" y1="6" x2="20" y2="6"/><line x1="12" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
-          <span>Manage Categories</span>
-        </button>
-        <div class="dropdown-sep"></div>
-        <button class="dropdown-item" onclick="exportCSV()">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export CSV
-        </button>
-      </div>
+  <div class="navbar-right">
+    <div class="search-bar">
+      <i data-lucide="search"></i>
+      <input type="text" id="searchInput" placeholder="Search entries..." oninput="renderEntries()">
     </div>
-    <!-- Add entry — owner only -->
-    <button class="btn btn-primary btn-add owner-only" id="addEntryBtn" onclick="toggleForm()">
-      <svg viewBox="0 0 24 24" class="btn-add"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      <span class="btn-add-label">Log Entry</span>
+    <button class="add-btn" id="addEntryBtn" onclick="toggleForm()" title="Add entry">
+      <i data-lucide="plus"></i>
+    </button>
+    <button class="menu-btn" id="menuBtn">
+      <i data-lucide="ellipsis-vertical"></i>
     </button>
   </div>
-</header>
+  <!-- Menu dropdown -->
+  <div class="dropdown menu-dropdown" id="menuDropdown">
+    <div class="menu-email" id="authEmailRow"></div>
+    <button class="menu-item hidden" id="editModeBtn" onclick="toggleEditMode()">
+      <i data-lucide="pencil"></i><span>Edit</span>
+    </button>
+    <button class="menu-item" id="exportBtn" onclick="exportCSV()">
+      <i data-lucide="download"></i><span>Export CSV</span>
+    </button>
+    <div class="menu-divider"></div>
+    <button class="menu-item" id="authMenuItem" onclick="handleAuthClick()">
+      <i data-lucide="user"></i><span>Sign in with Google</span>
+    </button>
+  </div>
+  <!-- Year dropdown -->
+  <div class="dropdown year-dropdown" id="yearDropdown"></div>
+</nav>
 
+<!-- ── Main ──────────────────────────────────────────── -->
 <div class="container">
-
   <div class="auth-error" id="authError"></div>
 
-  <!-- ADD FORM -->
+  <!-- Add form -->
   <div class="add-form" id="addForm">
-    <div class="form-title">New Entry</div>
+    <h3>New Entry</h3>
     <div class="form-row">
-      <div>
-        <label>Title</label>
-        <input id="inputTitle" type="text" placeholder="e.g. Dune: Part Two" />
-      </div>
-      <div>
-        <label>Year</label>
-        <input id="inputYear" type="number" min="1900" max="2099" />
-      </div>
+      <input class="form-input" type="text" id="inputTitle" placeholder="Title" autocomplete="off">
+      <input class="form-input year-input" type="number" id="inputYear" min="1900" max="2099">
+      <button class="fav-toggle" id="favoriteToggle" onclick="toggleFormFavorite()" title="Toggle favorite">
+        <i data-lucide="star" id="favoriteStarIcon"></i>
+      </button>
     </div>
-    <label>Category</label>
-    <div id="formCatPills" class="form-cat-pills"></div>
+    <div class="form-cat-pills" id="formCatPills"></div>
     <div class="form-actions">
-      <button class="star-form-btn" id="favoriteToggle" onclick="toggleFormFavorite()">
-        <svg id="favoriteStarIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        Favorite
-      </button>
-      <div style="flex:1"></div>
-      <button class="btn btn-ghost" onclick="toggleForm()">Cancel</button>
-      <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
+      <button class="btn-submit" onclick="addEntry()">Add</button>
     </div>
   </div>
 
-  <!-- YEAR BAR -->
+  <!-- Year bar -->
   <div class="year-bar">
-    <div class="year-dropdown-wrap menu-wrap">
-      <button class="year-btn" id="yearBtn">
-        <span class="year-label" id="yearLabel"></span>
-        <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="dropdown year-dropdown" id="yearDropdown"></div>
-    </div>
-    <div class="search-wrap">
-      <input class="search-input-field" id="searchInput" type="text" placeholder="Search…" oninput="renderEntries()" />
-      <button class="btn-icon" id="searchToggle">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-    </div>
+    <button class="year-btn" id="yearBtn"><span id="yearLabel"></span></button>
   </div>
 
-  <!-- STAT PILLS -->
-  <div class="cat-pills" id="statPills"></div>
+  <!-- Stats pills -->
+  <div class="stats-row" id="statsPills"></div>
 
-  <div id="entriesList"></div>
-
-</div>
-
-<!-- Icon Picker Modal -->
-<div id="iconPickerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:1001;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:400px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.14)">
-    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text)">Pick Icon</h3>
-    <div id="iconGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:8px;margin-bottom:16px"></div>
-    <button class="btn btn-ghost" onclick="document.getElementById('iconPickerModal').style.display='none'" style="width:100%">Cancel</button>
-  </div>
-</div>
-
-<!-- Category Manager Modal -->
-<div id="catManagerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35);z-index:1000;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-height:80vh;overflow-y:auto;max-width:500px;width:90%;box-shadow:0 16px 48px rgba(0,0,0,.14)">
-    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text)">Manage Categories</h2>
-    <div id="catManagerList" style="margin-bottom:20px;max-height:300px;overflow-y:auto"></div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <input id="newCatName" type="text" placeholder="New category name" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:inherit;font-size:15px;outline:none">
-      <button class="btn btn-primary" onclick="addNewCategory()" style="white-space:nowrap">Add</button>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-ghost" onclick="cancelCategoryChanges()" style="flex:1">Cancel</button>
-      <button class="btn btn-primary" onclick="saveCategoryChanges()" style="flex:1">Save</button>
-    </div>
-  </div>
+  <!-- Entries -->
+  <div class="entries-columns" id="entriesList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- ── Scripts ───────────────────────────────────────── -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
   // ── Firebase ──────────────────────────────────────────────
   const firebaseConfig = {
@@ -462,67 +375,54 @@
   const auth = firebase.auth();
   const col  = db.collection('entries');
 
-  // ── Icons (SVG) ───────────────────────────────────────────
+  // ── Icons (Lucide) ────────────────────────────────────────
   const IC = {
-    // Movies — Lucide `film`
-    film: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18M17 3v18M3 7.5h4M17 7.5h4M3 12h18M3 16.5h4M17 16.5h4"/></svg>',
-    // TV Shows — Lucide `tv` (screen + antennas)
-    tv: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>',
-    // Books — Lucide `book-open`
-    bookCopy: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
-    // Audiobooks — Lucide `headphones`
-    bookHeadphones: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>',
-    // Podcasts — Lucide `mic`
-    mic: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>',
-    // Plays — Lucide `ticket`
-    drama: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><line x1="9" x2="9" y1="2" y2="22"/></svg>',
-    // Comics — Lucide `message-square`
-    messageCircle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-    // Video Games — Lucide `gamepad-2`
-    gamepad2: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="17" y2="13"/><path d="M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>',
-    // Concerts — Lucide `music`
-    music: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-    // Stand-up — Lucide `laugh`
-    micVocal: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>',
-    // Checkmark — Lucide `check`
-    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    // Custom categories — Lucide `tag`
-    tag: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor" stroke="none"/></svg>',
-    // Sign out — Lucide `log-out`
-    signout: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-    // Star outline
-    star: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-    // Star filled
-    starFilled: '<svg width="16" height="16" viewBox="0 0 24 24" fill="#f5a623" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    film:          '<i data-lucide="film" width="16" height="16"></i>',
+    tv:            '<i data-lucide="tv" width="16" height="16"></i>',
+    bookCopy:      '<i data-lucide="book-copy" width="16" height="16"></i>',
+    bookHeadphones:'<i data-lucide="headphones" width="16" height="16"></i>',
+    mic:           '<i data-lucide="mic" width="16" height="16"></i>',
+    drama:         '<i data-lucide="ticket" width="16" height="16"></i>',
+    messageCircle: '<i data-lucide="message-square" width="16" height="16"></i>',
+    gamepad2:      '<i data-lucide="gamepad-2" width="16" height="16"></i>',
+    music:         '<i data-lucide="music" width="16" height="16"></i>',
+    micVocal:      '<i data-lucide="smile" width="16" height="16"></i>',
+    check:         '<i data-lucide="check" width="16" height="16"></i>',
+    tag:           '<i data-lucide="tag" width="16" height="16"></i>',
+    signout:       '<i data-lucide="log-out" width="16" height="16"></i>',
+    star:          '<i data-lucide="star" width="16" height="16"></i>',
+    starFilled:    '<i data-lucide="star" width="16" height="16" style="fill:var(--gold);stroke:var(--gold);color:var(--gold)"></i>',
+    ellipsis:      '<i data-lucide="ellipsis" width="16" height="16"></i>'
   };
-
-  // ── Category Colors & Icons ───────────────────────────────
-  const CAT_COLORS = ['#ff7a45', '#1890ff', '#52c41a', '#722ed1', '#7c6cff', '#faad14', '#13c2c2', '#fa541c', '#f5222d', '#eb2f96'];
   const CAT_ICONS = {
     film: IC.film, tv: IC.tv, bookCopy: IC.bookCopy, bookHeadphones: IC.bookHeadphones,
     mic: IC.mic, drama: IC.drama, messageCircle: IC.messageCircle,
     gamepad2: IC.gamepad2, music: IC.music, micVocal: IC.micVocal
   };
-  const CAT_ICON_KEYS = Object.keys(CAT_ICONS);
 
-  // ── Categories ────────────────────────────────────────────
-  const DEFAULT_CATS = [
-    { id: 'Movies',      label: 'Movies',      color: '#ff7a45', icon: IC.film, iconKey: 'film', isBuiltIn: true },
-    { id: 'TV Shows',    label: 'TV Shows',    color: '#1890ff', icon: IC.tv, iconKey: 'tv', isBuiltIn: true },
-    { id: 'Books',       label: 'Books',       color: '#52c41a', icon: IC.bookCopy, iconKey: 'bookCopy', isBuiltIn: true },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: '#722ed1', icon: IC.bookHeadphones, iconKey: 'bookHeadphones', isBuiltIn: true },
-    { id: 'Podcasts',    label: 'Podcasts',    color: '#7c6cff', icon: IC.mic, iconKey: 'mic', isBuiltIn: true },
-    { id: 'Plays',       label: 'Plays',       color: '#faad14', icon: IC.drama, iconKey: 'drama', isBuiltIn: true },
-    { id: 'Comics',      label: 'Comics',      color: '#13c2c2', icon: IC.messageCircle, iconKey: 'messageCircle', isBuiltIn: true },
-    { id: 'Video Games', label: 'Video Games', color: '#fa541c', icon: IC.gamepad2, iconKey: 'gamepad2', isBuiltIn: true },
-    { id: 'Concerts',    label: 'Concerts',    color: '#f5222d', icon: IC.music, iconKey: 'music', isBuiltIn: true },
-    { id: 'Stand-up',    label: 'Stand-up',    color: '#eb2f96', icon: IC.micVocal, iconKey: 'micVocal', isBuiltIn: true },
+  // ── Categories (fixed list — no custom management) ────────
+  const CATEGORIES = [
+    { id: 'Movies',      label: 'Movies',      color: 'var(--cat-movies)',     icon: IC.film,          iconKey: 'film' },
+    { id: 'TV Shows',    label: 'TV Shows',    color: 'var(--cat-tv)',         icon: IC.tv,            iconKey: 'tv' },
+    { id: 'Books',       label: 'Books',       color: 'var(--cat-books)',      icon: IC.bookCopy,      iconKey: 'bookCopy' },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: 'var(--cat-audiobooks)', icon: IC.bookHeadphones,iconKey: 'bookHeadphones' },
+    { id: 'Comics',      label: 'Comics',      color: 'var(--cat-comics)',     icon: IC.messageCircle, iconKey: 'messageCircle' },
+    { id: 'Video Games', label: 'Video Games', color: 'var(--cat-videogames)', icon: IC.gamepad2,      iconKey: 'gamepad2' },
+    { id: 'Concerts',    label: 'Concerts',    color: 'var(--cat-concerts)',   icon: IC.music,         iconKey: 'music' },
+    { id: 'Podcasts',    label: 'Podcasts',    color: 'var(--cat-podcasts)',   icon: IC.mic,           iconKey: 'mic' },
+    { id: 'Stand-up',    label: 'Stand-up',    color: 'var(--cat-standup)',    icon: IC.micVocal,      iconKey: 'micVocal' },
+    { id: 'Plays',       label: 'Plays',       color: 'var(--cat-plays)',      icon: IC.drama,         iconKey: 'drama' },
+    { id: 'Other',       label: 'Other',       color: 'var(--cat-other)',      icon: IC.tag,           iconKey: 'tag' },
   ];
+
+  function allCats() { return CATEGORIES; }
+  function catMeta(id) {
+    return CATEGORIES.find(c => c.id === id) || { id, label: id, color: 'var(--cat-other)', icon: IC.tag, iconKey: 'tag' };
+  }
 
   // ── State ─────────────────────────────────────────────────
   let entries      = [];
-  let allCategoriesData = loadAllCategories();
-  let selectedCat  = DEFAULT_CATS[0].id;
+  let selectedCat  = CATEGORIES[0].id;
   let activeFilter = 'All';
   let selectedYear = new Date().getFullYear();
   let isOwner      = false;
@@ -531,59 +431,6 @@
   let draggedEntry = null;
   let formFavorite = false;
 
-  function loadAllCategories() {
-    const stored = JSON.parse(localStorage.getItem('allCategories') || '{}');
-    const legacy = JSON.parse(localStorage.getItem('customCats') || '[]');
-
-    // Migrate legacy custom categories if needed
-    let customCats = [];
-    if (Array.isArray(legacy) && legacy.length > 0) {
-      if (typeof legacy[0] === 'string') {
-        customCats = legacy.map((name, idx) => ({
-          id: name,
-          label: name,
-          color: CAT_COLORS[idx % CAT_COLORS.length],
-          iconKey: 'tag',
-          isBuiltIn: false
-        }));
-      } else {
-        customCats = legacy.map((cat, idx) => ({
-          ...cat,
-          iconKey: cat.iconKey || 'tag',
-          isBuiltIn: false
-        }));
-      }
-    }
-
-    // Filter out legacy custom cats that are now built-in defaults (avoids duplicates)
-    const defaultIds = new Set(DEFAULT_CATS.map(d => d.id));
-    customCats = customCats.filter(c => !defaultIds.has(c.id));
-
-    // Merge with defaults
-    let merged = DEFAULT_CATS.map(def => stored[def.id] || def);
-    merged.push(...customCats);
-    return merged;
-  }
-
-  function saveAllCategories() {
-    const toStore = {};
-    allCategoriesData.forEach(cat => {
-      if (cat.isBuiltIn || allCategoriesData.filter(c => !c.isBuiltIn).includes(cat)) {
-        toStore[cat.id] = cat;
-      }
-    });
-    localStorage.setItem('allCategories', JSON.stringify(toStore));
-  }
-
-  function allCats() {
-    return allCategoriesData.map(cat => ({
-      ...cat,
-      icon: CAT_ICONS[cat.iconKey] || IC.tag
-    }));
-  }
-  function catMeta(id) {
-    return allCats().find(c => c.id === id) || { id, label: id, color: '#8888aa', icon: IC.tag };
-  }
   function getYear(e) {
     if (e.year) return parseInt(e.year);
     if (e.date) return parseInt(e.date.split('-')[0]);
@@ -599,7 +446,6 @@
   document.getElementById('yearLabel').textContent = selectedYear;
   document.getElementById('inputYear').value = selectedYear;
   buildTypePills();
-  buildCatDropdown();
 
   function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
   setSyncStatus('syncing');
@@ -616,21 +462,14 @@
   // ── Auth ──────────────────────────────────────────────────
   const OWNER_EMAIL = 'gabriel.jacobi@gmail.com';
 
-  // Always check for a pending redirect result on load (handles Chrome Android
-  // fallback and any browser where popup navigated the tab instead of opening one)
   auth.getRedirectResult().then(result => {
     if (result && result.user) {
-      console.log('✓ Redirect sign-in completed:', result.user.email);
-      // Explicitly update auth state (don't rely on onAuthStateChanged alone)
       currentUser = result.user;
       isOwner = result.user.email === OWNER_EMAIL;
       updateAuthUI(result.user);
       renderAll();
     } else {
-      console.log('getRedirectResult: no pending redirect (result is null or missing user)');
-      // Fallback: check if user is already signed in (handles Chrome Custom Tabs edge case)
       if (auth.currentUser) {
-        console.log('✓ User is signed in via auth.currentUser:', auth.currentUser.email);
         currentUser = auth.currentUser;
         isOwner = auth.currentUser.email === OWNER_EMAIL;
         updateAuthUI(auth.currentUser);
@@ -638,7 +477,6 @@
       }
     }
   }).catch(err => {
-    console.error('✗ getRedirectResult error:', err.code, err.message);
     showAuthError('Sign-in failed (' + (err.code || 'unknown error') + '). Try again.');
   });
 
@@ -650,34 +488,29 @@
   });
 
   function updateAuthUI(user) {
-    const label    = document.getElementById('authMenuLabel');
     const menuBtn  = document.getElementById('authMenuItem');
     const addBtn   = document.getElementById('addEntryBtn');
     const emailRow = document.getElementById('authEmailRow');
+    const editBtn  = document.getElementById('editModeBtn');
 
     if (user) {
       if (emailRow) { emailRow.style.display = 'block'; emailRow.textContent = user.email || ''; }
-      if (label) label.textContent = 'Sign out';
       if (menuBtn) {
         menuBtn.innerHTML = `${IC.signout} <span>Sign out</span>`;
+        lucide.createIcons({ el: menuBtn });
         menuBtn.classList.add('danger');
       }
       if (addBtn && isOwner) addBtn.classList.add('visible');
-      const editBtn = document.getElementById('editModeBtn');
-      if (editBtn && isOwner) editBtn.classList.add('visible');
-      const catMgrBtn = document.getElementById('catManagerBtn');
-      if (catMgrBtn && isOwner) catMgrBtn.classList.add('visible');
+      if (editBtn && isOwner) editBtn.classList.remove('hidden');
     } else {
       if (emailRow) emailRow.style.display = 'none';
       if (menuBtn) {
-        menuBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span>Sign in with Google</span>`;
+        menuBtn.innerHTML = `<i data-lucide="user" width="16" height="16"></i> <span>Sign in with Google</span>`;
+        lucide.createIcons({ el: menuBtn });
         menuBtn.classList.remove('danger');
       }
       if (addBtn) addBtn.classList.remove('visible');
-      const editBtn = document.getElementById('editModeBtn');
-      if (editBtn) editBtn.classList.remove('visible');
-      const catMgrBtn = document.getElementById('catManagerBtn');
-      if (catMgrBtn) catMgrBtn.classList.remove('visible');
+      if (editBtn) editBtn.classList.add('hidden');
     }
   }
 
@@ -689,23 +522,15 @@
     }
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ 'prompt': 'select_account' });
-
-    // Use popup on all platforms with triple-redundancy fallback
     auth.signInWithPopup(provider).then(result => {
-      // Primary: popup completed successfully
       currentUser = result.user;
       isOwner = result.user && result.user.email === OWNER_EMAIL;
       updateAuthUI(result.user);
       renderAll();
     }).catch(err => {
-      console.error('Popup error:', err);
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-        return; // user cancelled
-      }
-      // If popup fails, try redirect as fallback
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
       auth.signInWithRedirect(provider).catch(redirectErr => {
         showAuthError(redirectErr.code || redirectErr.message || 'Sign-in failed.');
-        console.error('Redirect fallback error:', redirectErr);
       });
     });
   }
@@ -734,6 +559,7 @@
         ${y} ${y === selectedYear ? IC.check : ''}
       </button>
     `).join('');
+    lucide.createIcons({ el: dd });
   }
 
   function selectYear(y) {
@@ -754,17 +580,8 @@
     if (!isOpen) { dd.classList.add('open'); btn.classList.add('open'); }
   });
 
-  // ── Category filter ───────────────────────────────────────
-  function buildCatDropdown() {
-    // Dropdown removed - categories now shown as pills
-  }
-
   // ── Search ────────────────────────────────────────────────
-  document.getElementById('searchToggle').addEventListener('click', () => {
-    const inp = document.getElementById('searchInput');
-    const open = inp.classList.toggle('open');
-    if (open) inp.focus(); else { inp.value = ''; renderEntries(); }
-  });
+  document.getElementById('searchInput').addEventListener('input', () => renderEntries());
 
   // ── Global close ──────────────────────────────────────────
   function closeAllDropdowns() {
@@ -773,342 +590,78 @@
   }
   document.addEventListener('click', closeAllDropdowns);
 
-  // ── Category Manager ───────────────────────────────────────
-  let categoryBackup = null;
-
-  function openCategories() {
-    closeAllDropdowns();
-    // Create backup of current categories before any changes
-    categoryBackup = JSON.parse(JSON.stringify(allCategoriesData));
-    showCategoryList();
-    showIconPicker();
-    document.getElementById('catManagerModal').style.display = 'flex';
-  }
-
-  function cancelCategoryChanges() {
-    // Restore from backup
-    if (categoryBackup) {
-      allCategoriesData = JSON.parse(JSON.stringify(categoryBackup));
-    }
-    // Close modal and reset
-    document.getElementById('catManagerModal').style.display = 'none';
-    document.getElementById('newCatName').value = '';
-    categoryBackup = null;
-    // Rebuild UI to reflect restored state
-    buildTypePills();
-    buildCatDropdown();
-    renderEntries();
-  }
-
-  function saveCategoryChanges() {
-    // Categories were already saved to localStorage by individual functions
-    // Just close the modal and clear backup
-    document.getElementById('catManagerModal').style.display = 'none';
-    document.getElementById('newCatName').value = '';
-    categoryBackup = null;
-  }
-
-  // Close modals when clicking on the backdrop
-  document.getElementById('catManagerModal').addEventListener('click', (e) => {
-    if (e.target.id === 'catManagerModal') {
-      cancelCategoryChanges();
-    }
-  });
-
-  document.getElementById('iconPickerModal').addEventListener('click', (e) => {
-    if (e.target.id === 'iconPickerModal') {
-      document.getElementById('iconPickerModal').style.display = 'none';
-    }
-  });
-
-  function showIconPicker() {
-    const searchInput = document.getElementById('iconSearchInput');
-    if (!searchInput) {
-      const picker = document.getElementById('iconPickerModal').querySelector('div > div');
-      const search = document.createElement('input');
-      search.id = 'iconSearchInput';
-      search.type = 'text';
-      search.placeholder = 'Search icons...';
-      search.style.cssText = 'width:100%;padding:10px 13px;margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;outline:none';
-      search.addEventListener('input', showIconPicker);
-      picker.insertBefore(search, picker.querySelector('#iconGrid'));
-    }
-    const query = (document.getElementById('iconSearchInput')?.value || '').toLowerCase();
-    const filtered = CAT_ICON_KEYS.filter(key => key.includes(query));
-    const grid = document.getElementById('iconGrid');
-    grid.innerHTML = filtered.map(key => `
-      <button onclick="selectIcon('${key}')" style="display:flex;align-items:center;justify-content:center;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;transition:all 0.15s;color:var(--text)" title="${key}">
-        ${CAT_ICONS[key]}
-      </button>
-    `).join('');
-  }
-
-  function selectIcon(iconKey) {
-    const catId = window.currentIconPickerCat;
-    if (!catId) return;
-    const cat = allCategoriesData.find(c => c.id === catId);
-    if (!cat) return;
-    cat.iconKey = iconKey;
-    saveAllCategories();
-    showCategoryList();
-    buildTypePills();
-    buildCatDropdown();
-    renderEntries();
-    document.getElementById('iconPickerModal').style.display = 'none';
-    showToast('Icon updated');
-  }
-
-  function showCategoryList() {
-    const list = document.getElementById('catManagerList');
-    list.innerHTML = allCats().map(cat => `
-      <div style="display:flex;align-items:center;gap:8px;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-        <div style="width:24px;height:24px;flex-shrink:0;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openIconPicker('${cat.id}')" title="Change icon">${cat.icon}</div>
-        <span class="cat-name-display" data-id="${cat.id}" style="flex:1;font-weight:600">${escHtml(cat.label)}</span>
-        <button class="btn-icon cat-edit-btn" data-id="${cat.id}" onclick="startEditCat('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Rename">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/><path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        </button>
-        <button class="btn-icon" data-id="${cat.id}" onclick="deleteCatWithCheck('${cat.id}')" style="padding:6px 8px;flex-shrink:0" title="Delete">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-9l-1 1H5v2h14V4z"/></svg>
-        </button>
-      </div>
-    `).join('');
-  }
-
-  function startEditCat(id) {
-    const display = document.querySelector(`.cat-name-display[data-id="${id}"]`);
-    const editBtn = document.querySelector(`.cat-edit-btn[data-id="${id}"]`);
-    if (!display || !editBtn) return;
-
-    // Hide other buttons
-    const container = display.parentElement;
-    const otherBtns = container.querySelectorAll('.btn-icon:not(.cat-edit-btn)');
-    otherBtns.forEach(btn => btn.style.display = 'none');
-
-    // Create editable input
-    const input = document.createElement('div');
-    input.className = 'cat-name-editable';
-    input.dataset.id = id;
-    input.contentEditable = 'true';
-    input.textContent = display.textContent;
-    input.style.cssText = 'flex:1;padding:4px 6px;border-radius:4px;outline:2px solid var(--accent)';
-
-    // Replace display with input
-    display.replaceWith(input);
-
-    // Update edit button to "Done"
-    editBtn.onclick = () => finishEditCat(id);
-    editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
-
-    // Handle keyboard
-    input.onkeydown = (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        finishEditCat(id);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        cancelEditCat(id);
-      }
-    };
-
-    // Focus and select
-    input.focus();
-    const sel = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(input);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  function finishEditCat(id) {
-    const el = document.querySelector(`.cat-name-editable[data-id="${id}"]`);
-    const newName = el.textContent.trim();
-
-    // Validation
-    if (!newName) {
-      showToast('Name cannot be empty');
-      cancelEditCat(id);
-      return;
-    }
-    if (allCategoriesData.find(c => c.label === newName && c.id !== id)) {
-      showToast('Name already exists');
-      cancelEditCat(id);
-      return;
-    }
-
-    // Update category
-    const cat = allCategoriesData.find(c => c.id === id);
-    cat.label = newName;
-    saveAllCategories();
-
-    // Rebuild UI
-    showCategoryList();
-    buildTypePills();
-    buildCatDropdown();
-    renderEntries();
-    showToast('Category renamed');
-  }
-
-  function cancelEditCat(id) {
-    showCategoryList();
-  }
-
-  function openIconPicker(catId) {
-    window.currentIconPickerCat = catId;
-    document.getElementById('iconPickerModal').style.display = 'flex';
-  }
-
-  function addNewCategory() {
-    const name = document.getElementById('newCatName').value.trim();
-    if (!name) { showToast('Category name required'); return; }
-    if (allCategoriesData.find(c => c.label === name)) { showToast('Category already exists'); return; }
-    const customCount = allCategoriesData.filter(c => !c.isBuiltIn).length;
-    allCategoriesData.push({
-      id: name,
-      label: name,
-      color: CAT_COLORS[customCount % CAT_COLORS.length],
-      iconKey: 'tag',
-      isBuiltIn: false
-    });
-    saveAllCategories();
-    showCategoryList();
-    document.getElementById('newCatName').value = '';
-    buildTypePills();
-    buildCatDropdown();
-    showToast('Category added');
-  }
-
-  function deleteCatWithCheck(id) {
-    const entryCount = entries.filter(e => e.type === id).length;
-    if (entryCount > 0) {
-      showToast(`Cannot delete: ${entryCount} entry/entries use this category`);
-      return;
-    }
-    if (!confirm('Delete this category?')) return;
-    allCategoriesData = allCategoriesData.filter(c => c.id !== id);
-    saveAllCategories();
-    showCategoryList();
-    buildTypePills();
-    buildCatDropdown();
-    renderEntries();
-    showToast('Category deleted');
-  }
-
   // ── Form ──────────────────────────────────────────────────
   function toggleForm() {
     const form = document.getElementById('addForm');
     const open = form.classList.toggle('open');
     if (open) {
       document.getElementById('inputTitle').focus();
-      buildTypePills();
-      // Reset favorite state
+      buildFormCatPills();
       formFavorite = false;
       const btn = document.getElementById('favoriteToggle');
-      const icon = document.getElementById('favoriteStarIcon');
       if (btn) btn.classList.remove('starred');
-      if (icon) icon.setAttribute('fill', 'none');
+      const icon = document.getElementById('favoriteStarIcon');
+      if (icon) { icon.setAttribute('fill', 'none'); icon.setAttribute('stroke', 'currentColor'); }
     }
-  }
-
-  function buildTypePills() {
-    // Stat pills — displayed on the main page
-    const statWrap = document.getElementById('statPills');
-    const yearEntries = entries.filter(e => getYear(e) === selectedYear);
-    const total = yearEntries.length;
-    const allPill = total > 0 ? `<div class="cat-pill" style="background:#2d2d3a"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> ${total} All</div>` : '';
-    statWrap.innerHTML = allPill + allCats().map(c => {
-      const count = yearEntries.filter(e => e.type === c.id).length;
-      if (count === 0) return '';
-      return `<div class="cat-pill" style="background:${c.color}">${c.icon} ${count} ${c.label}</div>`;
-    }).join('');
-
-    // Category pills — inside the add-entry form
-    const formPillsWrap = document.getElementById('formCatPills');
-    if (formPillsWrap) {
-      // Ensure selectedCat is valid
-      const cats = allCats();
-      if (!cats.find(c => c.id === selectedCat)) selectedCat = cats[0]?.id || '';
-      formPillsWrap.innerHTML = cats.map(c => `
-        <div class="form-cat-pill${c.id === selectedCat ? ' selected' : ''}"
-             style="background:${c.color}"
-             onclick="selectFormCat('${escHtml(c.id)}')">
-          ${c.icon} ${escHtml(c.label)}
-        </div>`).join('');
-    }
-  }
-
-  function selectFormCat(id) {
-    selectedCat = id;
-    buildTypePills();
   }
 
   function toggleFormFavorite() {
     formFavorite = !formFavorite;
     const btn = document.getElementById('favoriteToggle');
     const icon = document.getElementById('favoriteStarIcon');
-    if (btn) btn.classList.toggle('starred', formFavorite);
-    if (icon) icon.setAttribute('fill', formFavorite ? '#f5a623' : 'none');
+    if (formFavorite) {
+      btn.classList.add('starred');
+      if (icon) { icon.setAttribute('fill', 'var(--gold)'); icon.setAttribute('stroke', 'var(--gold)'); }
+    } else {
+      btn.classList.remove('starred');
+      if (icon) { icon.setAttribute('fill', 'none'); icon.setAttribute('stroke', 'currentColor'); }
+    }
   }
 
+  function buildFormCatPills() {
+    const el = document.getElementById('formCatPills');
+    el.innerHTML = CATEGORIES.map(cat => {
+      const active = cat.id === selectedCat;
+      const style = active ? `background:${cat.color};color:white;border-color:transparent` : '';
+      return `<button class="form-cat-pill${active ? ' active' : ''}" style="${style}" onclick="selectFormCat('${cat.id}')">${cat.icon} ${cat.label}</button>`;
+    }).join('');
+    lucide.createIcons({ el });
+  }
+
+  function selectFormCat(id) {
+    selectedCat = id;
+    buildFormCatPills();
+  }
 
   async function addEntry() {
     const title = document.getElementById('inputTitle').value.trim();
-    const year  = parseInt(document.getElementById('inputYear').value) || selectedYear;
-    if (!title) { showToast('Please enter a title.'); return; }
-    setSyncStatus('syncing');
+    const year  = document.getElementById('inputYear').value;
+    if (!title) { showToast('Title is required.'); return; }
     try {
-      await col.add({ title, year, type: selectedCat, favorite: formFavorite, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await col.add({ title, type: selectedCat, year, favorite: formFavorite, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       document.getElementById('inputTitle').value = '';
-      document.getElementById('inputYear').value = selectedYear;
       formFavorite = false;
-      toggleForm();
-      showToast('Saved!');
-    } catch(e) {
-      setSyncStatus('error');
-      showToast('Error saving — check connection.');
-      console.error(e);
-    }
+      const btn = document.getElementById('favoriteToggle');
+      if (btn) btn.classList.remove('starred');
+      showToast('Entry added!');
+    } catch(e) { showToast('Error adding entry.'); }
   }
-  document.getElementById('inputTitle').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
 
-  // ── Edit Mode ────────────────────────────────────────────
+  // ── Edit Mode ─────────────────────────────────────────────
   function toggleEditMode() {
+    closeAllDropdowns();
     editMode = !editMode;
     const btn = document.getElementById('editModeBtn');
-    const label = document.getElementById('editModeLabel');
     if (editMode) {
-      btn.classList.add('danger');
-      label.textContent = 'Done';
+      btn.innerHTML = `<i data-lucide="check" width="16" height="16"></i><span>Done editing</span>`;
     } else {
-      btn.classList.remove('danger');
-      label.textContent = 'Edit';
+      btn.innerHTML = `<i data-lucide="pencil" width="16" height="16"></i><span>Edit</span>`;
     }
-    closeAllDropdowns();
+    lucide.createIcons({ el: btn });
     renderEntries();
   }
 
-  async function renameEntry(id) {
-    const entry = entries.find(e => e.id === id);
-    if (!entry) return;
-    const newTitle = prompt('Rename entry:', entry.title);
-    if (newTitle && newTitle.trim()) {
-      try {
-        await col.doc(id).update({ title: newTitle.trim() });
-        showToast('Renamed.');
-      } catch(e) {
-        showToast('Error renaming.');
-      }
-    }
-  }
-
-  async function moveEntry(id, direction) {
-    const filtered = entries.filter(e => getYear(e) === selectedYear && (activeFilter === 'All' || e.type === activeFilter));
-    const idx = filtered.findIndex(e => e.id === id);
-    if (idx === -1) return;
-    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (newIdx < 0 || newIdx >= filtered.length) return;
-    await swapEntries(id, filtered[newIdx].id);
-  }
-
+  // ── Move / Swap ───────────────────────────────────────────
   async function swapEntries(id1, id2) {
     const e1 = entries.find(e => e.id === id1);
     const e2 = entries.find(e => e.id === id2);
@@ -1117,9 +670,7 @@
       await col.doc(id1).update({ createdAt: e2.createdAt });
       await col.doc(id2).update({ createdAt: e1.createdAt });
       showToast('Reordered.');
-    } catch(e) {
-      showToast('Error reordering.');
-    }
+    } catch(e) { showToast('Error reordering.'); }
   }
 
   // ── Delete ────────────────────────────────────────────────
@@ -1136,14 +687,46 @@
     const newVal = !entry.favorite;
     try {
       await col.doc(id).update({ favorite: newVal });
-      showToast(newVal ? '⭐ Added to favorites!' : 'Removed from favorites.');
-    } catch(e) {
-      showToast('Error updating.');
-    }
+      showToast(newVal ? 'Added to favorites!' : 'Removed from favorites.');
+    } catch(e) { showToast('Error updating.'); }
+  }
+
+  // ── Stats pills (filter bar) ──────────────────────────────
+  function buildTypePills() {
+    const el = document.getElementById('statsPills');
+    const yearEntries = entries.filter(e => getYear(e) === selectedYear);
+    const total = yearEntries.length;
+
+    // Count per category
+    const counts = {};
+    yearEntries.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+
+    // Sort categories by count (desc), then alphabetical
+    const sorted = CATEGORIES.slice().sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label));
+
+    let html = `<button class="stat-pill${activeFilter === 'All' ? ' active' : ''}"
+      style="${activeFilter === 'All' ? 'background:var(--base02);color:white;border-color:transparent' : ''}"
+      onclick="setFilter('All')">All <span class="pill-count">${total}</span></button>`;
+
+    sorted.forEach(cat => {
+      const count = counts[cat.id] || 0;
+      if (count === 0) return;
+      const active = activeFilter === cat.id;
+      const style = active ? `background:${cat.color};color:white;border-color:transparent` : '';
+      html += `<button class="stat-pill${active ? ' active' : ''}" style="${style}" onclick="setFilter('${cat.id}')">${cat.icon} ${cat.label} <span class="pill-count">${count}</span></button>`;
+    });
+    el.innerHTML = html;
+    lucide.createIcons({ el });
+  }
+
+  function setFilter(f) {
+    activeFilter = f;
+    buildTypePills();
+    renderEntries();
   }
 
   // ── Render ────────────────────────────────────────────────
-  function renderAll() { buildYearDropdown(); buildTypePills(); renderEntries(); buildCatDropdown(); }
+  function renderAll() { buildYearDropdown(); buildTypePills(); renderEntries(); }
 
   function renderEntries() {
     const search = document.getElementById('searchInput').value.toLowerCase();
@@ -1159,140 +742,156 @@
 
     if (!filtered.length) {
       el.innerHTML = `<div class="empty-state">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        <i data-lucide="layout-dashboard"></i>
         <p>${entries.filter(e => getYear(e) === selectedYear).length === 0
           ? `Nothing logged for ${selectedYear} yet.`
           : 'No entries match your filter.'}</p>
       </div>`;
+      lucide.createIcons({ el });
       return;
     }
 
-    // Helper to build category-grouped HTML for a set of entries
-    function buildCatGroups(items) {
+    // Build category groups
+    function buildCatGroupHTML(items) {
       const groups = {};
       items.forEach(e => { (groups[e.type] = groups[e.type] || []).push(e); });
-      const orderedCats = allCats().filter(c => groups[c.id]);
-      Object.keys(groups).forEach(id => { if (!orderedCats.find(c => c.id === id)) orderedCats.push(catMeta(id)); });
-      return orderedCats.map(cat => {
-        const catItems = groups[cat.id];
-        const rows = catItems.map((e, idx) => {
+
+      // Sort categories by entry count (descending)
+      const catsWithEntries = Object.keys(groups).map(id => ({ meta: catMeta(id), items: groups[id] }));
+      catsWithEntries.sort((a, b) => b.items.length - a.items.length);
+
+      return catsWithEntries.map(({ meta: cat, items: catItems }) => {
+        const rows = catItems.map(e => {
           if (editMode && isOwner) {
             return `
-              <div class="entry-row draggable" draggable="true" data-id="${e.id}" style="display:flex;align-items:center;gap:8px">
-                <svg class="drag-handle" style="width:18px;height:18px;color:var(--text-muted);flex-shrink:0;cursor:grab" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/></svg>
+              <div class="entry-row draggable" draggable="true" data-id="${e.id}">
+                <i data-lucide="grip-vertical" class="drag-handle" style="width:18px;height:18px;flex-shrink:0"></i>
                 <button class="star-btn${e.favorite ? ' starred' : ''}" onclick="toggleFavorite('${e.id}')" title="Toggle favorite">
-                  <svg viewBox="0 0 24 24" fill="${e.favorite ? '#f5a623' : 'none'}" stroke="${e.favorite ? '#f5a623' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <i data-lucide="star" style="${e.favorite ? 'fill:var(--gold);stroke:var(--gold);color:var(--gold)' : ''}"></i>
                 </button>
                 <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
-                <button class="btn-icon edit-title-btn" data-id="${e.id}" onclick="toggleTitleEdit('${e.id}')" style="padding:6px 8px;flex-shrink:0">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <button class="btn-icon edit-title-btn" data-id="${e.id}" onclick="toggleTitleEdit('${e.id}')">
+                  <i data-lucide="square-pen" width="16" height="16"></i>
                 </button>
-                <button class="del-btn delete-btn" onclick="deleteEntry('${e.id}')" style="flex-shrink:0">
-                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button class="del-btn btn-icon" onclick="deleteEntry('${e.id}')">
+                  <i data-lucide="x" width="16" height="16"></i>
                 </button>
               </div>`;
           } else {
             return `
               <div class="entry-row">
-                ${e.favorite ? `<span class="fav-badge"><svg viewBox="0 0 24 24" fill="#f5a623" stroke="#f5a623" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>` : ''}
+                ${e.favorite ? `<span class="fav-badge"><i data-lucide="star" style="fill:var(--gold);stroke:var(--gold);color:var(--gold);width:16px;height:16px"></i></span>` : ''}
                 <div class="entry-title">${escHtml(e.title)}</div>
               </div>`;
           }
         }).join('');
+
         return `<div class="cat-group">
           <div class="cat-group-header" style="color:${cat.color}">${cat.icon} ${cat.label}
-            <span class="cat-count">${catItems.length}</span>
+            <span class="cat-count" style="background:${cat.color}">${catItems.length}</span>
           </div>
           <div class="entry-list">${rows}</div>
         </div>`;
-      }).join('');
+      });
     }
 
     if (searchMode) {
-      // Group by year (newest first), then by category within each year
+      // Group by year first
       const yearMap = {};
       filtered.forEach(e => {
         const y = getYear(e) || 'Unknown';
         (yearMap[y] = yearMap[y] || []).push(e);
       });
       const sortedYears = Object.keys(yearMap).sort((a, b) => b - a);
-      el.innerHTML = sortedYears.map(year => `
-        <div class="year-section" style="margin-bottom:24px">
-          <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:6px 0 10px">${year}</div>
-          ${buildCatGroups(yearMap[year])}
-        </div>`).join('');
+      const allCards = [];
+      sortedYears.forEach(year => {
+        allCards.push(`<div style="grid-column:1/-1;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:6px 0 2px">${year}</div>`);
+        allCards.push(...buildCatGroupHTML(yearMap[year]));
+      });
+      el.innerHTML = allCards.join('');
     } else {
-      // Normal single-year view grouped by category
-      el.innerHTML = buildCatGroups(filtered);
-    }
+      // Masonry: distribute cat-groups across 3 columns by entry count
+      const catCards = buildCatGroupHTML(filtered);
+      const catCounts = [];
+      const groups = {};
+      filtered.forEach(e => { (groups[e.type] = groups[e.type] || []).push(e); });
+      const catsWithEntries = Object.keys(groups).map(id => ({ id, count: groups[id].length }));
+      catsWithEntries.sort((a, b) => b.count - a.count);
 
-    // Attach drag event listeners to draggable entry rows
-    if (editMode && isOwner) {
-      const rows = document.querySelectorAll('.entry-row[draggable]');
-      rows.forEach(row => {
-        row.addEventListener('dragstart', e => {
-          draggedEntry = row.dataset.id;
-          row.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-        });
-        row.addEventListener('dragend', () => {
-          row.classList.remove('dragging');
-          draggedEntry = null;
-          document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
-        });
-        row.addEventListener('dragover', e => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (draggedEntry && draggedEntry !== row.dataset.id) {
-            row.classList.add('drag-over');
-          }
-        });
-        row.addEventListener('dragleave', () => {
-          row.classList.remove('drag-over');
-        });
-        row.addEventListener('drop', async e => {
-          e.preventDefault();
-          if (draggedEntry && draggedEntry !== row.dataset.id) {
-            await swapEntries(draggedEntry, row.dataset.id);
-          }
-        });
+      // Greedy column fill
+      const colCount = window.innerWidth <= 768 ? 1 : 3;
+      const columns = Array.from({ length: colCount }, () => ({ html: '', height: 0 }));
+
+      // Map cat cards in same order as catsWithEntries
+      catsWithEntries.forEach((cat, i) => {
+        // Find shortest column
+        const shortest = columns.reduce((min, col, idx) => col.height < columns[min].height ? idx : min, 0);
+        columns[shortest].html += catCards[i];
+        columns[shortest].height += cat.count + 2; // +2 for header overhead
       });
 
-      // Attach title edit handlers
-      const titleElements = document.querySelectorAll('.entry-title[data-id]');
-      titleElements.forEach(titleEl => {
-        titleEl.addEventListener('blur', async () => {
-          if (!titleEl.contentEditable || titleEl.contentEditable === 'false') return;
+      if (colCount === 1) {
+        el.innerHTML = columns[0].html;
+      } else {
+        el.innerHTML = columns.map(col => `<div class="masonry-col">${col.html}</div>`).join('');
+      }
+    }
+
+    lucide.createIcons({ el });
+    attachDragListeners();
+  }
+
+  function attachDragListeners() {
+    if (!editMode || !isOwner) return;
+    const rows = document.querySelectorAll('.entry-row[draggable]');
+    rows.forEach(row => {
+      row.addEventListener('dragstart', e => {
+        draggedEntry = row.dataset.id;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        draggedEntry = null;
+        document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedEntry && draggedEntry !== row.dataset.id) row.classList.add('drag-over');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('drop', async e => {
+        e.preventDefault();
+        if (draggedEntry && draggedEntry !== row.dataset.id) await swapEntries(draggedEntry, row.dataset.id);
+      });
+    });
+
+    // Title edit handlers
+    document.querySelectorAll('.entry-title[data-id]').forEach(titleEl => {
+      titleEl.addEventListener('blur', async () => {
+        if (!titleEl.contentEditable || titleEl.contentEditable === 'false') return;
+        const id = titleEl.dataset.id;
+        const newTitle = titleEl.textContent.trim();
+        const oldEntry = entries.find(e => e.id === id);
+        if (newTitle && newTitle !== oldEntry?.title) {
+          try { await col.doc(id).update({ title: newTitle }); showToast('Renamed.'); }
+          catch(err) { showToast('Error saving.'); titleEl.textContent = oldEntry?.title || ''; }
+        } else {
+          titleEl.textContent = oldEntry?.title || '';
+        }
+        finishTitleEdit(id);
+      });
+      titleEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); titleEl.blur(); }
+        else if (e.key === 'Escape') {
+          e.preventDefault();
           const id = titleEl.dataset.id;
-          const newTitle = titleEl.textContent.trim();
-          const oldEntry = entries.find(e => e.id === id);
-
-          if (newTitle && newTitle !== oldEntry?.title) {
-            try {
-              await col.doc(id).update({ title: newTitle });
-              showToast('Renamed.');
-            } catch(err) {
-              showToast('Error saving.');
-              titleEl.textContent = oldEntry?.title || '';
-            }
-          } else {
-            titleEl.textContent = oldEntry?.title || '';
-          }
+          titleEl.textContent = entries.find(ent => ent.id === id)?.title || '';
           finishTitleEdit(id);
-        });
-        titleEl.addEventListener('keydown', e => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            titleEl.blur();
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            const id = titleEl.dataset.id;
-            titleEl.textContent = entries.find(ent => ent.id === id)?.title || '';
-            finishTitleEdit(id);
-          }
-        });
+        }
       });
-    }
+    });
   }
 
   function toggleTitleEdit(id) {
@@ -1302,17 +901,13 @@
     if (!titleEl || !btnEl || !rowEl) return;
 
     if (titleEl.contentEditable === 'true') {
-      // Currently editing, finish edit
       titleEl.blur();
     } else {
-      // Start editing
       titleEl.contentEditable = 'true';
-      titleEl.style.background = 'var(--surface2)';
-      titleEl.style.outline = '2px solid var(--accent)';
-      rowEl.classList.add('editing-title');
-      // Change button icon to checkmark
-      btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      // Focus and select all text
+      titleEl.style.background = 'var(--surface)';
+      titleEl.style.outline = '2px solid var(--base02)';
+      btnEl.innerHTML = '<i data-lucide="check" width="16" height="16"></i>';
+      lucide.createIcons({ el: btnEl });
       titleEl.focus();
       setTimeout(() => {
         const range = document.createRange();
@@ -1327,20 +922,20 @@
   function finishTitleEdit(id) {
     const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
     const btnEl = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
-    const rowEl = document.querySelector(`.entry-row[data-id="${id}"]`);
-    if (!titleEl || !btnEl || !rowEl) return;
-
+    if (!titleEl || !btnEl) return;
     titleEl.contentEditable = 'false';
     titleEl.style.background = '';
     titleEl.style.outline = '';
-    rowEl.classList.remove('editing-title');
-    // Change button icon back to pencil
-    btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    btnEl.innerHTML = '<i data-lucide="square-pen" width="16" height="16"></i>';
+    lucide.createIcons({ el: btnEl });
   }
 
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  // ── Init Lucide icons for static HTML ────────────────────
+  lucide.createIcons();
 
   // ── Export ────────────────────────────────────────────────
   function exportCSV() {
