@@ -44,8 +44,11 @@
   --surface:#eee8d5;
   --gold:#f5a623;
 
+  --sw:1.5px;      /* stroke/border width — bumped at ≥1280px */
+  --sw-heavy:2px;  /* heavier borders (cards, form) */
+
   font-family:'Bricolage Grotesque',system-ui,-apple-system,sans-serif;
-  font-size:16px;
+  font-size:20px;
   color:var(--text);
   background:var(--bg);
 }
@@ -55,7 +58,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 /* ── Navbar ───────────────────────────────────────────── */
 .navbar{
   height:88px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 80px;border-bottom:1.5px solid var(--border);position:relative;
+  padding:0 80px;border-bottom:var(--sw) solid var(--border);position:relative;
 }
 .navbar-left{display:flex;align-items:center;gap:16px;min-width:0}
 
@@ -85,7 +88,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
 /* Menu button */
 .menu-btn{
-  width:40px;height:40px;border-radius:50%;background:none;border:1.5px solid var(--border);
+  width:40px;height:40px;border-radius:50%;background:none;border:var(--sw) solid var(--border);
   cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);
   transition:background .15s;flex-shrink:0;
 }
@@ -94,7 +97,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 /* ── Dropdown (shared) ────────────────────────────────── */
 .dropdown{
   position:absolute;display:none;z-index:100;
-  background:var(--bg);border:1.5px solid var(--border-card);border-radius:24px;
+  background:var(--bg);border:var(--sw) solid var(--border-card);border-radius:24px;
   box-shadow:0 6px 20px rgba(0,0,0,.12);overflow:hidden;
 }
 .dropdown.open{display:block}
@@ -144,7 +147,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
 /* ── Add Form ─────────────────────────────────────────── */
 .add-form{
-  display:none;background:var(--bg);border:2px solid var(--border-card);
+  display:none;background:var(--bg);border:var(--sw-heavy) solid var(--border-card);
   border-radius:24px;padding:32px 24px;margin-top:24px;margin-bottom:0;
   box-shadow:0 6px 4px rgba(0,0,0,.25);position:relative;
 }
@@ -158,7 +161,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .form-close-btn{
   position:absolute;top:16px;right:16px;
   width:32px;height:32px;border-radius:50%;background:none;
-  border:1.5px solid var(--border-card);cursor:pointer;
+  border:var(--sw) solid var(--border-card);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   color:var(--text-muted);transition:background .15s;
 }
@@ -168,7 +171,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .form-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
 .form-input{
   flex:1;min-width:0;padding:10px 14px;background:var(--surface);
-  border:1.5px solid var(--border);border-radius:12px;font-family:inherit;
+  border:var(--sw) solid var(--border);border-radius:12px;font-family:inherit;
   font-size:15px;color:var(--text);outline:none;transition:border-color .15s;
 }
 .form-input:focus{border-color:var(--base02)}
@@ -196,7 +199,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .btn-submit:hover{opacity:.85}
 .btn-cancel{
   padding:10px 24px;background:none;color:var(--text-muted);
-  border:1.5px solid var(--border-card);
+  border:var(--sw) solid var(--border-card);
   border-radius:12px;font-family:inherit;font-size:15px;font-weight:600;
   cursor:pointer;transition:all .15s;
 }
@@ -209,7 +212,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .fav-toggle:hover{background:var(--surface)}
 .fav-toggle i,.fav-toggle svg{fill:none;stroke:currentColor;transition:all .15s}
-.fav-toggle.starred i,.fav-toggle.starred svg{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
+.fav-toggle.starred i,.fav-toggle.starred svg{fill:var(--gold);stroke:var(--base02);color:var(--gold)}
 
 /* ── Year + Search row ────────────────────────────────── */
 .year-search-row{
@@ -236,11 +239,11 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 /* Search bar (now in content area, not navbar) */
 .search-bar{
   display:flex;align-items:center;gap:8px;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
+  background:var(--surface);border:var(--sw) solid var(--border);border-radius:20px;
   padding:8px 16px;width:260px;transition:all .2s;
 }
 .search-bar input{
-  flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;
+  flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:17px;
   color:var(--text);min-width:0;
 }
 .search-bar input::placeholder{color:var(--text-placeholder)}
@@ -252,8 +255,11 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .search-close-btn i,.search-close-btn svg{width:16px;height:16px}
 
-/* Divider below year+search row — bleeds full width past container padding */
-.year-divider{height:1.5px;background:var(--border);margin-bottom:28px;margin-left:-80px;margin-right:-80px}
+/* Divider below year+search row — always spans full viewport width */
+.year-divider{
+  height:var(--sw);background:var(--border);margin-bottom:28px;
+  width:100vw;position:relative;left:50%;transform:translateX(-50%);
+}
 
 /* ── Stats area: counter + pills ─────────────────────── */
 .stats-area{
@@ -298,34 +304,34 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
 /* ── Category card ────────────────────────────────────── */
 .cat-group{
-  border:2px solid var(--border-card);border-radius:16px;padding:16px;
+  border:var(--sw-heavy) solid var(--border-card);border-radius:16px;padding:16px;
   margin-bottom:16px;background:var(--bg);
   min-width:0;overflow:hidden;
 }
 .cat-group-header{
   display:flex;align-items:center;gap:8px;margin-bottom:12px;
-  font-weight:700;font-size:16px;
+  font-weight:700;font-size:18px;
 }
 .cat-group-header i,.cat-group-header svg{width:16px;height:16px;flex-shrink:0}
 .cat-count{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:26px;height:26px;border-radius:16px;padding:0 8px;
-  font-weight:700;font-size:16px;color:white;margin-left:auto;
+  font-weight:700;font-size:15px;color:white;margin-left:auto;
 }
 .entry-list{display:flex;flex-direction:column;gap:2px}
 
 /* ── Entry row ────────────────────────────────────────── */
 .entry-row{
   display:flex;align-items:center;gap:8px;padding:5px 0;
-  font-size:16px;color:var(--text-secondary);
+  font-size:20px;color:var(--text-secondary);
 }
 .entry-title{
   flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-/* Star in normal view — only rendered when favorited, no outline otherwise */
+/* Star in normal view — only rendered when favorited, gold fill + dark outline */
 .fav-badge{flex-shrink:0;display:flex;align-items:center}
-.fav-badge i,.fav-badge svg{width:15px;height:15px;fill:var(--gold);stroke:var(--gold)}
+.fav-badge i,.fav-badge svg{width:15px;height:15px;fill:var(--gold);stroke:var(--base02);stroke-width:2px}
 /* Star in edit mode — outline idle, gold outline hover, filled when starred */
 .star-btn{
   background:none;border:none;cursor:pointer;padding:2px;
@@ -365,13 +371,81 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── Skeleton loading ─────────────────────────────────── */
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+.skeleton-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start;
+}
+.skeleton-card{
+  border-radius:16px;overflow:hidden;
+  border:var(--sw-heavy) solid var(--border-card);
+  padding:16px;margin-bottom:16px;
+}
+.skeleton-bar{
+  height:14px;border-radius:8px;margin-bottom:10px;
+  background:linear-gradient(90deg,var(--surface) 25%,var(--border-card) 50%,var(--surface) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.6s infinite;
+}
+.skeleton-bar.header{height:18px;width:55%;margin-bottom:14px}
+.skeleton-bar.w80{width:80%}
+.skeleton-bar.w65{width:65%}
+.skeleton-bar.w90{width:90%}
+.skeleton-bar.w50{width:50%}
+.skeleton-bar.w75{width:75%}
+@media(max-width:768px){.skeleton-grid{grid-template-columns:1fr}}
+
+/* ── Hall of Fame modal ───────────────────────────────── */
+.hof-overlay{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(0,43,54,.45);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.hof-overlay.open{display:flex}
+.hof-modal{
+  background:var(--bg);border:var(--sw-heavy) solid var(--border-card);
+  border-radius:24px;width:100%;max-width:680px;
+  max-height:80vh;display:flex;flex-direction:column;
+  box-shadow:0 12px 40px rgba(0,0,0,.2);overflow:hidden;
+}
+.hof-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;border-bottom:var(--sw) solid var(--border-card);flex-shrink:0;
+}
+.hof-title{font-size:20px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.hof-close{
+  width:36px;height:36px;border-radius:50%;background:none;
+  border:var(--sw) solid var(--border-card);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-muted);transition:background .15s;
+}
+.hof-close:hover{background:var(--surface)}
+.hof-body{overflow-y:auto;padding:20px 24px;flex:1}
+.hof-year{
+  font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-muted);margin:16px 0 8px;
+}
+.hof-year:first-child{margin-top:0}
+.hof-cat-label{
+  display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;
+  margin:10px 0 4px;
+}
+.hof-entry{
+  display:flex;align-items:center;gap:8px;padding:4px 0;
+  font-size:17px;color:var(--text-secondary);
+}
+.hof-empty{text-align:center;padding:48px 24px;color:var(--text-muted);font-size:16px}
+
 /* ── Large screen refinements ─────────────────────────── */
 @media(min-width:1280px){
+  :root{--sw:2px;--sw-heavy:2.5px}
   .navbar{padding:0 120px}
   .menu-dropdown{right:120px}
   .container{padding:0 120px 80px}
-  .entry-row{font-size:17px}
-  .year-divider{margin-left:-120px;margin-right:-120px}
+  .entry-row{font-size:21px}
 }
 
 /* ── Mobile ───────────────────────────────────────────── */
@@ -386,7 +460,6 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .container{padding:0 16px 48px}
   .year-search-row{gap:12px;padding:16px 0}
   .search-bar{flex:1;min-width:0}
-  .year-divider{margin-left:-16px;margin-right:-16px}
   .stats-area{flex-direction:column;align-items:flex-start;gap:16px}
   .entries-columns{grid-template-columns:1fr}
   .entry-counter-num{font-size:48px}
@@ -398,7 +471,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 <!-- ── Navbar ────────────────────────────────────────── -->
 <nav class="navbar">
   <div class="navbar-left">
-    <a href="/" class="logo">
+    <a href="#" class="logo" id="logoLink">
       <img src="logo-desktop.svg" class="logo-desktop" alt="Media Tracker"
            onerror="this.onerror=null;this.style.display='none';document.getElementById('logoTextDesktop').style.display='block'">
       <img src="logo-mobile.svg" class="logo-mobile" alt="Media Tracker"
@@ -421,6 +494,9 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     <div class="menu-email" id="authEmailRow"></div>
     <button class="menu-item hidden" id="editModeBtn" onclick="toggleEditMode()">
       <i data-lucide="pencil"></i><span>Edit</span>
+    </button>
+    <button class="menu-item" id="hofBtn" onclick="showHallOfFame()">
+      <i data-lucide="star"></i><span>Hall of Fame</span>
     </button>
     <button class="menu-item" id="exportBtn" onclick="exportCSV()">
       <i data-lucide="download"></i><span>Export CSV</span>
@@ -478,7 +554,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   <div class="year-divider"></div>
 
   <!-- Stats area: big counter + category pills -->
-  <div class="stats-area">
+  <div class="stats-area" id="statsArea" style="display:none">
     <div class="entry-counter">
       <span class="entry-counter-num" id="entryCountNum">0</span>
       <span class="entry-counter-label">Entries</span>
@@ -486,8 +562,38 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     <div class="stats-row" id="statsPills"></div>
   </div>
 
+  <!-- Skeleton (shown while initial data loads) -->
+  <div id="skeletonGrid" class="skeleton-grid">
+    <div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w80"></div><div class="skeleton-bar w65"></div><div class="skeleton-bar w90"></div><div class="skeleton-bar w50"></div></div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w80"></div></div>
+    </div>
+    <div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w90"></div><div class="skeleton-bar w65"></div><div class="skeleton-bar w80"></div></div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w50"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w90"></div></div>
+    </div>
+    <div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w65"></div></div>
+      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w80"></div><div class="skeleton-bar w50"></div><div class="skeleton-bar w90"></div></div>
+    </div>
+  </div>
+
   <!-- Entries -->
-  <div class="entries-columns" id="entriesList"></div>
+  <div class="entries-columns" id="entriesList" style="display:none"></div>
+</div>
+
+<!-- ── Hall of Fame modal ─────────────────────────────── -->
+<div class="hof-overlay" id="hofOverlay" onclick="closeHoF()">
+  <div class="hof-modal" onclick="event.stopPropagation()">
+    <div class="hof-header">
+      <span class="hof-title">
+        <i data-lucide="star" style="width:20px;height:20px;fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i>
+        Hall of Fame
+      </span>
+      <button class="hof-close" onclick="closeHoF()"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+    </div>
+    <div class="hof-body" id="hofBody"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -528,7 +634,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     tag:           '<i data-lucide="tag" width="16" height="16"></i>',
     signout:       '<i data-lucide="log-out" width="16" height="16"></i>',
     star:          '<i data-lucide="star" width="16" height="16"></i>',
-    starFilled:    '<i data-lucide="star" width="16" height="16" style="fill:var(--gold);stroke:var(--gold)"></i>',
+    starFilled:    '<i data-lucide="star" width="16" height="16" style="fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i>',
     ellipsis:      '<i data-lucide="ellipsis" width="16" height="16"></i>'
   };
 
@@ -561,6 +667,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   let editMode     = false;
   let draggedEntry = null;
   let formFavorite = false;
+  let isFirstLoad  = true;
 
   function getYear(e) {
     if (e.year) return parseInt(e.year);
@@ -596,6 +703,12 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
         return { id: d.id, ...data };
       }).sort((a, b) => getSortOrder(a) - getSortOrder(b));
       setSyncStatus('synced');
+      if (isFirstLoad) {
+        isFirstLoad = false;
+        document.getElementById('skeletonGrid').style.display = 'none';
+        document.getElementById('entriesList').style.display = '';
+        document.getElementById('statsArea').style.display = '';
+      }
       renderAll();
       // Run one-time Firestore schema migration for the owner
       if (isOwner && !localStorage.getItem('mt_migrated_v2')) migrateSchema();
@@ -684,6 +797,13 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     });
   }
 
+  // ── Logo → jump to latest year ───────────────────────────
+  document.getElementById('logoLink').addEventListener('click', e => {
+    e.preventDefault();
+    const years = availableYears();
+    if (years.length) selectYear(years[0]);
+  });
+
   // ── Kebab menu ────────────────────────────────────────────
   document.getElementById('menuBtn').addEventListener('click', e => {
     e.stopPropagation();
@@ -731,17 +851,21 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
   // ── Search ────────────────────────────────────────────────
   const searchInput = document.getElementById('searchInput');
+  function setSearchVisuals(hasQuery) {
+    document.getElementById('searchCloseBtn').style.display = hasQuery ? 'flex' : 'none';
+    // Hide the year selector while user has an active search query
+    document.querySelector('.year-btn-wrap').style.display = hasQuery ? 'none' : '';
+  }
+
   searchInput.addEventListener('input', () => {
-    // Show/hide clear button
-    const closeBtn = document.getElementById('searchCloseBtn');
-    closeBtn.style.display = searchInput.value ? 'flex' : 'none';
+    setSearchVisuals(!!searchInput.value);
     renderEntries();
   });
 
   document.getElementById('searchCloseBtn').addEventListener('click', e => {
     e.stopPropagation();
     searchInput.value = '';
-    document.getElementById('searchCloseBtn').style.display = 'none';
+    setSearchVisuals(false);
     renderEntries();
     searchInput.focus();
   });
@@ -1004,7 +1128,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
           } else {
             // Normal view: only show star if favorited (filled, no outline otherwise)
             const starEl = e.favorite
-              ? `<span class="fav-badge"><i data-lucide="star" style="width:15px;height:15px;fill:var(--gold);stroke:var(--gold)"></i></span>`
+              ? `<span class="fav-badge"><i data-lucide="star" style="width:15px;height:15px;fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i></span>`
               : '';
             return `
               <div class="entry-row">
@@ -1172,6 +1296,76 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
     a.click();
     showToast('CSV exported!');
   }
+
+  // ── Hall of Fame ──────────────────────────────────────────
+  function showHallOfFame() {
+    closeAllDropdowns();
+    const overlay = document.getElementById('hofOverlay');
+    const body    = document.getElementById('hofBody');
+
+    const starred = [...entries].filter(e => e.favorite);
+
+    if (!starred.length) {
+      body.innerHTML = `<div class="hof-empty">No starred entries yet.<br>Star your favourites while in edit mode.</div>`;
+      overlay.classList.add('open');
+      lucide.createIcons({ el: overlay });
+      return;
+    }
+
+    // Group by year desc, then within each year group by category
+    const yearMap = {};
+    starred.forEach(e => {
+      const y = getYear(e) || 'Unknown';
+      if (!yearMap[y]) yearMap[y] = {};
+      if (!yearMap[y][e.type]) yearMap[y][e.type] = [];
+      yearMap[y][e.type].push(e);
+    });
+
+    const sortedYears = Object.keys(yearMap).sort((a, b) => b - a);
+    let html = '';
+
+    sortedYears.forEach(year => {
+      html += `<div class="hof-year">${year}</div>`;
+      const catMap = yearMap[year];
+      // Sort categories by count desc
+      const cats = CATEGORIES.filter(c => catMap[c.id]);
+      cats.forEach(cat => {
+        html += `<div class="hof-cat-label" style="color:${cat.color}">${cat.icon} ${cat.label}</div>`;
+        catMap[cat.id].forEach(e => {
+          html += `<div class="hof-entry">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(e.title)}</span>
+            <span class="fav-badge"><i data-lucide="star" style="width:14px;height:14px;fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i></span>
+          </div>`;
+        });
+      });
+      // Any categories not in CATEGORIES list
+      Object.keys(catMap).forEach(id => {
+        if (!CATEGORIES.find(c => c.id === id)) {
+          const meta = catMeta(id);
+          html += `<div class="hof-cat-label" style="color:${meta.color}">${meta.icon} ${meta.label}</div>`;
+          catMap[id].forEach(e => {
+            html += `<div class="hof-entry">
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(e.title)}</span>
+              <span class="fav-badge"><i data-lucide="star" style="width:14px;height:14px;fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i></span>
+            </div>`;
+          });
+        }
+      });
+    });
+
+    body.innerHTML = html;
+    overlay.classList.add('open');
+    lucide.createIcons({ el: overlay });
+  }
+
+  function closeHoF() {
+    document.getElementById('hofOverlay').classList.remove('open');
+  }
+
+  // Close HoF on Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeHoF();
+  });
 
   function showAuthError(msg) {
     const el = document.getElementById('authError');
