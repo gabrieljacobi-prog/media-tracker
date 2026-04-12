@@ -12,7 +12,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  /* Solarized palette */
   --base03:#002b36;
   --base02:#073642;
   --base01:#586e75;
@@ -23,7 +22,6 @@
   --base3:#fdf6e3;
   --error:#ec5c59;
 
-  /* Category colors */
   --cat-movies:#d6616b;
   --cat-tv:#ad494a;
   --cat-videogames:#7375b5;
@@ -36,7 +34,6 @@
   --cat-plays:#ce6dbd;
   --cat-other:#586e75;
 
-  /* Semantic tokens */
   --bg:#fdf6e3;
   --text:#002b36;
   --text-secondary:#073642;
@@ -75,35 +72,6 @@ body{min-height:100vh;background:var(--bg)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 .navbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
-
-/* Search bar */
-.search-bar{
-  display:flex;align-items:center;gap:8px;
-  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
-  padding:8px 16px;width:260px;transition:all .2s;
-}
-.search-bar input{
-  flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;
-  color:var(--text);min-width:0;
-}
-.search-bar input::placeholder{color:var(--text-placeholder)}
-.search-bar .search-icon{color:var(--text-muted);width:16px;height:16px;flex-shrink:0}
-.search-close-btn{
-  background:none;border:none;cursor:pointer;padding:0;
-  display:none;align-items:center;justify-content:center;
-  color:var(--text-muted);line-height:1;
-}
-.search-close-btn i{width:14px;height:14px}
-
-/* Mobile search toggle icon */
-.search-toggle{
-  display:none;width:40px;height:40px;border-radius:50%;background:none;
-  border:1.5px solid var(--border);cursor:pointer;
-  align-items:center;justify-content:center;color:var(--text-muted);
-  transition:background .15s;flex-shrink:0;
-}
-.search-toggle:hover{background:var(--surface)}
-.search-toggle i{width:18px;height:18px}
 
 /* Add button */
 .add-btn{
@@ -146,9 +114,9 @@ body{min-height:100vh;background:var(--bg)}
 .menu-dropdown .menu-divider{height:1px;background:var(--border-card);margin:4px 0}
 .menu-dropdown .menu-item.hidden{display:none}
 
-/* Year dropdown — lives inside .year-bar (position:relative) */
+/* Year dropdown — positioned under .year-btn-wrap */
 .year-dropdown{
-  top:calc(100% + 8px);left:0;min-width:160px;padding:6px 0;
+  top:calc(100% + 6px);left:0;min-width:160px;padding:6px 0;
 }
 .year-dropdown .dropdown-item{
   display:flex;align-items:center;justify-content:space-between;gap:8px;
@@ -160,7 +128,7 @@ body{min-height:100vh;background:var(--bg)}
 
 /* ── Main Container ───────────────────────────────────── */
 .container{
-  padding:32px 80px 64px;
+  padding:0 80px 64px;
   max-width:1440px;
   margin:0 auto;
 }
@@ -174,8 +142,8 @@ body{min-height:100vh;background:var(--bg)}
 
 /* ── Add Form ─────────────────────────────────────────── */
 .add-form{
-  display:none;background:var(--bg);border:1.5px solid var(--border-card);
-  border-radius:24px;padding:32px 24px;margin-bottom:32px;
+  display:none;background:var(--bg);border:2px solid var(--border-card);
+  border-radius:24px;padding:32px 24px;margin-bottom:0;
   box-shadow:0 6px 4px rgba(0,0,0,.25);position:relative;
 }
 .add-form.open{display:block}
@@ -215,8 +183,7 @@ body{min-height:100vh;background:var(--bg)}
   opacity:0.38;
 }
 .form-cat-pill.active{opacity:1}
-.form-cat-pill:hover{opacity:0.7}
-.form-cat-pill.active:hover{opacity:1}
+.form-cat-pill:hover:not(.active){opacity:0.65}
 
 .form-actions{display:flex;gap:12px;align-items:center}
 .btn-submit{
@@ -242,19 +209,67 @@ body{min-height:100vh;background:var(--bg)}
 .fav-toggle i{fill:none;stroke:currentColor;transition:all .15s}
 .fav-toggle.starred i{fill:var(--gold);stroke:var(--gold);color:var(--gold)}
 
-/* ── Year bar ─────────────────────────────────────────── */
-.year-bar{display:flex;align-items:baseline;gap:16px;margin-bottom:12px;position:relative}
+/* ── Year + Search row ────────────────────────────────── */
+.year-search-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 0;gap:16px;
+}
+
+/* Year button (small, with chevron) */
+.year-btn-wrap{position:relative}
 .year-btn{
-  font-family:inherit;font-size:96px;font-weight:800;color:var(--text);
-  background:none;border:none;cursor:pointer;line-height:1;letter-spacing:-0.03em;
-  transition:opacity .15s;
+  display:flex;align-items:center;gap:6px;
+  font-family:inherit;font-size:22px;font-weight:700;color:var(--text);
+  background:none;border:none;cursor:pointer;letter-spacing:-0.02em;
+  transition:opacity .15s;padding:0;
 }
 .year-btn:hover{opacity:.7}
 .year-btn.open{opacity:.7}
+.year-chevron{
+  width:18px;height:18px;color:var(--text-muted);
+  transition:transform .2s;flex-shrink:0;
+}
+.year-btn.open .year-chevron{transform:rotate(180deg)}
 
-/* ── Stats pills ──────────────────────────────────────── */
+/* Search bar (now in content area, not navbar) */
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
+  padding:8px 16px;width:260px;transition:all .2s;
+}
+.search-bar input{
+  flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;
+  color:var(--text);min-width:0;
+}
+.search-bar input::placeholder{color:var(--text-placeholder)}
+.search-bar .search-icon{color:var(--text-muted);width:16px;height:16px;flex-shrink:0}
+.search-close-btn{
+  background:none;border:none;cursor:pointer;padding:0;
+  display:none;align-items:center;justify-content:center;
+  color:var(--text-muted);line-height:1;
+}
+.search-close-btn i{width:14px;height:14px}
+
+/* Divider below year+search row */
+.year-divider{height:1.5px;background:var(--border);margin-bottom:28px}
+
+/* ── Stats area: counter + pills ─────────────────────── */
+.stats-area{
+  display:flex;align-items:center;gap:24px;margin-bottom:32px;flex-wrap:wrap;
+}
+.entry-counter{
+  display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;
+  line-height:1;
+}
+.entry-counter-num{
+  font-size:64px;font-weight:800;letter-spacing:-0.04em;color:var(--text);line-height:0.9;
+}
+.entry-counter-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.1em;color:var(--text-muted);margin-top:6px;
+}
 .stats-row{
-  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;align-items:center;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1;
 }
 .stat-pill{
   display:flex;align-items:center;gap:6px;padding:5px 14px;
@@ -263,23 +278,24 @@ body{min-height:100vh;background:var(--bg)}
   transition:opacity .2s;
 }
 .stat-pill .pill-count{font-weight:700;font-size:13px;margin-left:2px}
-
 /* Dim non-active pills when a category filter is set */
 .stats-row.has-filter .stat-pill:not(.active){opacity:0.32}
 .stats-row.has-filter .stat-pill:not(.active):hover{opacity:0.65}
 
 /* ── Entries layout ───────────────────────────────────── */
 .entries-columns{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+  align-items:start;
 }
+/* Each masonry col fills its grid cell */
+.masonry-col{width:100%;min-width:0}
 
 /* ── Category card ────────────────────────────────────── */
 .cat-group{
-  border:1.5px solid var(--border-card);border-radius:16px;padding:16px;
+  border:2px solid var(--border-card);border-radius:16px;padding:16px;
   margin-bottom:16px;background:var(--bg);
-}
-@media(min-width:769px){
-  .cat-group{border-width:2px}
 }
 .cat-group-header{
   display:flex;align-items:center;gap:8px;margin-bottom:12px;
@@ -298,12 +314,14 @@ body{min-height:100vh;background:var(--bg)}
   display:flex;align-items:center;gap:8px;padding:5px 0;
   font-size:16px;color:var(--text-secondary);
 }
-/* Title truncates (no wrap) */
 .entry-title{
   flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-/* Star button — always visible, after title, flushed right */
+/* Star in normal view — only rendered when favorited, no outline otherwise */
+.fav-badge{flex-shrink:0;display:flex;align-items:center}
+.fav-badge i{width:15px;height:15px}
+/* Star in edit mode — outline for all, filled when starred */
 .star-btn{
   background:none;border:none;cursor:pointer;padding:2px;
   display:flex;align-items:center;justify-content:center;
@@ -312,9 +330,6 @@ body{min-height:100vh;background:var(--bg)}
 .star-btn i{width:15px;height:15px;fill:none;stroke:currentColor}
 .star-btn.starred i{fill:var(--gold);stroke:var(--gold)}
 .star-btn:not(.starred):hover i{stroke:var(--gold);color:var(--gold)}
-/* Non-owner favorite badge */
-.fav-badge{flex-shrink:0;display:flex;align-items:center}
-.fav-badge i{width:15px;height:15px}
 
 /* Edit mode buttons */
 .btn-icon{
@@ -349,7 +364,7 @@ body{min-height:100vh;background:var(--bg)}
 @media(min-width:1280px){
   .navbar{padding:0 120px}
   .menu-dropdown{right:120px}
-  .container{padding:48px 120px 80px}
+  .container{padding:0 120px 80px}
   .entry-row{font-size:17px}
 }
 
@@ -362,20 +377,11 @@ body{min-height:100vh;background:var(--bg)}
   .logo-desktop{display:none}
   .logo-mobile{display:block}
 
-  /* Collapsible search — hidden by default, expands as overlay */
-  .search-bar{
-    display:none;
-    position:absolute;left:16px;right:16px;top:12px;
-    width:auto;z-index:50;
-    background:var(--surface);border:1.5px solid var(--border);border-radius:20px;
-  }
-  .search-bar.search-open{display:flex}
-  .search-bar.search-open .search-close-btn{display:flex}
-  .search-toggle{display:flex}
-
-  .container{padding:24px 16px 48px}
-  .year-btn{font-size:64px}
+  .container{padding:0 16px 48px}
+  .year-search-row{flex-direction:column;align-items:stretch;gap:12px;padding:16px 0}
+  .search-bar{width:100%}
   .entries-columns{grid-template-columns:1fr}
+  .entry-counter-num{font-size:48px}
   .add-form{max-width:none;padding:24px 16px}
 }
 </style>
@@ -384,7 +390,6 @@ body{min-height:100vh;background:var(--bg)}
 <!-- ── Navbar ────────────────────────────────────────── -->
 <nav class="navbar">
   <div class="navbar-left">
-    <!-- Logo: swap logo-desktop.svg / logo-mobile.svg with your actual files -->
     <a href="/" class="logo">
       <img src="logo-desktop.svg" class="logo-desktop" alt="Media Tracker"
            onerror="this.onerror=null;this.style.display='none';document.getElementById('logoTextDesktop').style.display='block'">
@@ -396,18 +401,6 @@ body{min-height:100vh;background:var(--bg)}
     <span class="sync-dot" id="syncDot"></span>
   </div>
   <div class="navbar-right">
-    <!-- Mobile: icon to open search -->
-    <button class="search-toggle" id="searchToggle" title="Search">
-      <i data-lucide="search"></i>
-    </button>
-    <!-- Search bar (hidden on mobile until toggled) -->
-    <div class="search-bar" id="searchBar">
-      <i data-lucide="search" class="search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Search entries..." autocomplete="off">
-      <button class="search-close-btn" id="searchCloseBtn" title="Close search">
-        <i data-lucide="x"></i>
-      </button>
-    </div>
     <button class="add-btn" id="addEntryBtn" onclick="toggleForm()" title="Add entry">
       <i data-lucide="plus"></i>
     </button>
@@ -455,14 +448,35 @@ body{min-height:100vh;background:var(--bg)}
     </div>
   </div>
 
-  <!-- Year bar — dropdown lives here so it positions correctly -->
-  <div class="year-bar">
-    <button class="year-btn" id="yearBtn"><span id="yearLabel"></span></button>
-    <div class="dropdown year-dropdown" id="yearDropdown"></div>
+  <!-- Year selector + Search (same row) -->
+  <div class="year-search-row">
+    <div class="year-btn-wrap">
+      <button class="year-btn" id="yearBtn">
+        <span id="yearLabel"></span>
+        <i data-lucide="chevron-down" class="year-chevron"></i>
+      </button>
+      <div class="dropdown year-dropdown" id="yearDropdown"></div>
+    </div>
+    <div class="search-bar" id="searchBar">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Search entries..." autocomplete="off">
+      <button class="search-close-btn" id="searchCloseBtn" title="Clear">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
   </div>
 
-  <!-- Stats pills -->
-  <div class="stats-row" id="statsPills"></div>
+  <!-- Full-width divider -->
+  <div class="year-divider"></div>
+
+  <!-- Stats area: big counter + category pills -->
+  <div class="stats-area">
+    <div class="entry-counter">
+      <span class="entry-counter-num" id="entryCountNum">0</span>
+      <span class="entry-counter-label">Entries</span>
+    </div>
+    <div class="stats-row" id="statsPills"></div>
+  </div>
 
   <!-- Entries -->
   <div class="entries-columns" id="entriesList"></div>
@@ -506,27 +520,27 @@ body{min-height:100vh;background:var(--bg)}
     tag:           '<i data-lucide="tag" width="16" height="16"></i>',
     signout:       '<i data-lucide="log-out" width="16" height="16"></i>',
     star:          '<i data-lucide="star" width="16" height="16"></i>',
-    starFilled:    '<i data-lucide="star" width="16" height="16" style="fill:var(--gold);stroke:var(--gold);color:var(--gold)"></i>',
+    starFilled:    '<i data-lucide="star" width="16" height="16" style="fill:var(--gold);stroke:var(--gold)"></i>',
     ellipsis:      '<i data-lucide="ellipsis" width="16" height="16"></i>'
   };
 
   // ── Categories ────────────────────────────────────────────
   const CATEGORIES = [
-    { id: 'Movies',      label: 'Movies',      color: 'var(--cat-movies)',     icon: IC.film,           iconKey: 'film' },
-    { id: 'TV Shows',    label: 'TV Shows',    color: 'var(--cat-tv)',         icon: IC.tv,             iconKey: 'tv' },
-    { id: 'Books',       label: 'Books',       color: 'var(--cat-books)',      icon: IC.bookCopy,       iconKey: 'bookCopy' },
-    { id: 'Audiobooks',  label: 'Audiobooks',  color: 'var(--cat-audiobooks)', icon: IC.bookHeadphones, iconKey: 'bookHeadphones' },
-    { id: 'Comics',      label: 'Comics',      color: 'var(--cat-comics)',     icon: IC.messageCircle,  iconKey: 'messageCircle' },
-    { id: 'Video Games', label: 'Video Games', color: 'var(--cat-videogames)', icon: IC.gamepad2,       iconKey: 'gamepad2' },
-    { id: 'Concerts',    label: 'Concerts',    color: 'var(--cat-concerts)',   icon: IC.music,          iconKey: 'music' },
-    { id: 'Podcasts',    label: 'Podcasts',    color: 'var(--cat-podcasts)',   icon: IC.mic,            iconKey: 'mic' },
-    { id: 'Stand-up',    label: 'Stand-up',    color: 'var(--cat-standup)',    icon: IC.micVocal,       iconKey: 'micVocal' },
-    { id: 'Plays',       label: 'Plays',       color: 'var(--cat-plays)',      icon: IC.drama,          iconKey: 'drama' },
-    { id: 'Other',       label: 'Other',       color: 'var(--cat-other)',      icon: IC.tag,            iconKey: 'tag' },
+    { id: 'Movies',      label: 'Movies',      color: 'var(--cat-movies)',     icon: IC.film           },
+    { id: 'TV Shows',    label: 'TV Shows',    color: 'var(--cat-tv)',         icon: IC.tv             },
+    { id: 'Books',       label: 'Books',       color: 'var(--cat-books)',      icon: IC.bookCopy       },
+    { id: 'Audiobooks',  label: 'Audiobooks',  color: 'var(--cat-audiobooks)', icon: IC.bookHeadphones },
+    { id: 'Comics',      label: 'Comics',      color: 'var(--cat-comics)',     icon: IC.messageCircle  },
+    { id: 'Video Games', label: 'Video Games', color: 'var(--cat-videogames)', icon: IC.gamepad2       },
+    { id: 'Concerts',    label: 'Concerts',    color: 'var(--cat-concerts)',   icon: IC.music          },
+    { id: 'Podcasts',    label: 'Podcasts',    color: 'var(--cat-podcasts)',   icon: IC.mic            },
+    { id: 'Stand-up',    label: 'Stand-up',    color: 'var(--cat-standup)',    icon: IC.micVocal       },
+    { id: 'Plays',       label: 'Plays',       color: 'var(--cat-plays)',      icon: IC.drama          },
+    { id: 'Other',       label: 'Other',       color: 'var(--cat-other)',      icon: IC.tag            },
   ];
 
   function catMeta(id) {
-    return CATEGORIES.find(c => c.id === id) || { id, label: id, color: 'var(--cat-other)', icon: IC.tag, iconKey: 'tag' };
+    return CATEGORIES.find(c => c.id === id) || { id, label: id, color: 'var(--cat-other)', icon: IC.tag };
   }
 
   // ── State ─────────────────────────────────────────────────
@@ -577,13 +591,11 @@ body{min-height:100vh;background:var(--bg)}
       isOwner = result.user.email === OWNER_EMAIL;
       updateAuthUI(result.user);
       renderAll();
-    } else {
-      if (auth.currentUser) {
-        currentUser = auth.currentUser;
-        isOwner = auth.currentUser.email === OWNER_EMAIL;
-        updateAuthUI(auth.currentUser);
-        renderAll();
-      }
+    } else if (auth.currentUser) {
+      currentUser = auth.currentUser;
+      isOwner = auth.currentUser.email === OWNER_EMAIL;
+      updateAuthUI(auth.currentUser);
+      renderAll();
     }
   }).catch(err => {
     showAuthError('Sign-in failed (' + (err.code || 'unknown error') + '). Try again.');
@@ -601,7 +613,6 @@ body{min-height:100vh;background:var(--bg)}
     const addBtn   = document.getElementById('addEntryBtn');
     const emailRow = document.getElementById('authEmailRow');
     const editBtn  = document.getElementById('editModeBtn');
-
     if (user) {
       if (emailRow) { emailRow.style.display = 'block'; emailRow.textContent = user.email || ''; }
       if (menuBtn) {
@@ -690,22 +701,20 @@ body{min-height:100vh;background:var(--bg)}
   });
 
   // ── Search ────────────────────────────────────────────────
-  document.getElementById('searchInput').addEventListener('input', () => renderEntries());
-
-  // Mobile search toggle
-  document.getElementById('searchToggle').addEventListener('click', e => {
-    e.stopPropagation();
-    const bar = document.getElementById('searchBar');
-    bar.classList.add('search-open');
-    bar.querySelector('input').focus();
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', () => {
+    // Show/hide clear button
+    const closeBtn = document.getElementById('searchCloseBtn');
+    closeBtn.style.display = searchInput.value ? 'flex' : 'none';
+    renderEntries();
   });
 
   document.getElementById('searchCloseBtn').addEventListener('click', e => {
     e.stopPropagation();
-    const bar = document.getElementById('searchBar');
-    bar.classList.remove('search-open');
-    bar.querySelector('input').value = '';
+    searchInput.value = '';
+    document.getElementById('searchCloseBtn').style.display = 'none';
     renderEntries();
+    searchInput.focus();
   });
 
   // ── Global close ──────────────────────────────────────────
@@ -713,26 +722,13 @@ body{min-height:100vh;background:var(--bg)}
     document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
     document.getElementById('yearBtn').classList.remove('open');
   }
-
-  document.addEventListener('click', e => {
-    // Close mobile search if clicking outside
-    const bar = document.getElementById('searchBar');
-    const toggle = document.getElementById('searchToggle');
-    if (bar.classList.contains('search-open') &&
-        !bar.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
-      bar.classList.remove('search-open');
-      bar.querySelector('input').value = '';
-      renderEntries();
-    }
-    closeAllDropdowns();
-  });
+  document.addEventListener('click', closeAllDropdowns);
 
   // ── Form ──────────────────────────────────────────────────
   function toggleForm() {
     const form = document.getElementById('addForm');
-    const open = !form.classList.contains('open');
-    if (open) openForm();
-    else closeForm();
+    if (form.classList.contains('open')) closeForm();
+    else openForm();
   }
 
   function openForm() {
@@ -753,7 +749,7 @@ body{min-height:100vh;background:var(--bg)}
 
   function toggleFormFavorite() {
     formFavorite = !formFavorite;
-    const btn = document.getElementById('favoriteToggle');
+    const btn  = document.getElementById('favoriteToggle');
     const icon = document.getElementById('favoriteStarIcon');
     if (formFavorite) {
       btn.classList.add('starred');
@@ -785,7 +781,8 @@ body{min-height:100vh;background:var(--bg)}
     const year  = document.getElementById('inputYear').value;
     if (!title) { showToast('Title is required.'); return; }
     try {
-      await col.add({ title, type: selectedCat, year, favorite: formFavorite, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      await col.add({ title, type: selectedCat, year, favorite: formFavorite,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp() });
       document.getElementById('inputTitle').value = '';
       formFavorite = false;
       const btn = document.getElementById('favoriteToggle');
@@ -799,11 +796,9 @@ body{min-height:100vh;background:var(--bg)}
     closeAllDropdowns();
     editMode = !editMode;
     const btn = document.getElementById('editModeBtn');
-    if (editMode) {
-      btn.innerHTML = `<i data-lucide="check" width="16" height="16"></i><span>Done editing</span>`;
-    } else {
-      btn.innerHTML = `<i data-lucide="pencil" width="16" height="16"></i><span>Edit</span>`;
-    }
+    btn.innerHTML = editMode
+      ? `<i data-lucide="check" width="16" height="16"></i><span>Done editing</span>`
+      : `<i data-lucide="pencil" width="16" height="16"></i><span>Edit</span>`;
     lucide.createIcons({ el: btn });
     renderEntries();
   }
@@ -845,12 +840,15 @@ body{min-height:100vh;background:var(--bg)}
     const yearEntries = entries.filter(e => getYear(e) === selectedYear);
     const total = yearEntries.length;
 
+    // Update big counter
+    document.getElementById('entryCountNum').textContent = total;
+
     const counts = {};
     yearEntries.forEach(e => { counts[e.type] = (counts[e.type] || 0) + 1; });
+    const sorted = CATEGORIES.slice().sort(
+      (a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label)
+    );
 
-    const sorted = CATEGORIES.slice().sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0) || a.label.localeCompare(b.label));
-
-    // "All" pill — uses base02 color
     let html = `<button class="stat-pill${activeFilter === 'All' ? ' active' : ''}"
       style="background:var(--base02)"
       onclick="setFilter('All')">All <span class="pill-count">${total}</span></button>`;
@@ -861,18 +859,12 @@ body{min-height:100vh;background:var(--bg)}
       const active = activeFilter === cat.id;
       html += `<button class="stat-pill${active ? ' active' : ''}"
         style="background:${cat.color}"
-        onclick="setFilter('${cat.id}')">${cat.icon} ${cat.label} <span class="pill-count">${count}</span></button>`;
+        onclick="setFilter('${cat.id}')">${cat.icon} ${cat.label}
+        <span class="pill-count">${count}</span></button>`;
     });
 
     el.innerHTML = html;
-
-    // Toggle dimming class: dim non-active pills when a category filter is set
-    if (activeFilter !== 'All') {
-      el.classList.add('has-filter');
-    } else {
-      el.classList.remove('has-filter');
-    }
-
+    el.classList.toggle('has-filter', activeFilter !== 'All');
     lucide.createIcons({ el });
   }
 
@@ -890,7 +882,7 @@ body{min-height:100vh;background:var(--bg)}
     const el = document.getElementById('entriesList');
     const searchMode = !!search;
 
-    let filtered = entries.filter(e => {
+    const filtered = entries.filter(e => {
       const matchYear   = searchMode || getYear(e) === selectedYear;
       const matchCat    = activeFilter === 'All' || e.type === activeFilter;
       const matchSearch = !search || (e.title || '').toLowerCase().includes(search);
@@ -911,13 +903,14 @@ body{min-height:100vh;background:var(--bg)}
     function buildCatGroupHTML(items) {
       const groups = {};
       items.forEach(e => { (groups[e.type] = groups[e.type] || []).push(e); });
+      const cats = Object.keys(groups)
+        .map(id => ({ meta: catMeta(id), items: groups[id] }))
+        .sort((a, b) => b.items.length - a.items.length);
 
-      const catsWithEntries = Object.keys(groups).map(id => ({ meta: catMeta(id), items: groups[id] }));
-      catsWithEntries.sort((a, b) => b.items.length - a.items.length);
-
-      return catsWithEntries.map(({ meta: cat, items: catItems }) => {
+      return cats.map(({ meta: cat, items: catItems }) => {
         const rows = catItems.map(e => {
           if (editMode && isOwner) {
+            // Edit mode: interactive star (outline if not fav, filled if fav)
             return `
               <div class="entry-row draggable" draggable="true" data-id="${e.id}">
                 <i data-lucide="grip-vertical" class="drag-handle" style="width:18px;height:18px;flex-shrink:0"></i>
@@ -933,24 +926,21 @@ body{min-height:100vh;background:var(--bg)}
                 </button>
               </div>`;
           } else {
-            // Normal view: title then star flushed right
-            const starBtn = isOwner
-              ? `<button class="star-btn${e.favorite ? ' starred' : ''}" onclick="toggleFavorite('${e.id}')" title="${e.favorite ? 'Unfavorite' : 'Favorite'}">
-                  <i data-lucide="star"></i>
-                </button>`
-              : (e.favorite
-                  ? `<span class="fav-badge"><i data-lucide="star" style="width:15px;height:15px;fill:var(--gold);stroke:var(--gold)"></i></span>`
-                  : '');
+            // Normal view: only show star if favorited (filled, no outline otherwise)
+            const starEl = e.favorite
+              ? `<span class="fav-badge"><i data-lucide="star" style="width:15px;height:15px;fill:var(--gold);stroke:var(--gold)"></i></span>`
+              : '';
             return `
               <div class="entry-row">
                 <div class="entry-title">${escHtml(e.title)}</div>
-                ${starBtn}
+                ${starEl}
               </div>`;
           }
         }).join('');
 
         return `<div class="cat-group">
-          <div class="cat-group-header" style="color:${cat.color}">${cat.icon} ${cat.label}
+          <div class="cat-group-header" style="color:${cat.color}">
+            ${cat.icon} ${cat.label}
             <span class="cat-count" style="background:${cat.color}">${catItems.length}</span>
           </div>
           <div class="entry-list">${rows}</div>
@@ -975,23 +965,22 @@ body{min-height:100vh;background:var(--bg)}
       const catCards = buildCatGroupHTML(filtered);
       const groups = {};
       filtered.forEach(e => { (groups[e.type] = groups[e.type] || []).push(e); });
-      const catsWithEntries = Object.keys(groups).map(id => ({ id, count: groups[id].length }));
-      catsWithEntries.sort((a, b) => b.count - a.count);
+      const catsWithEntries = Object.keys(groups)
+        .map(id => ({ id, count: groups[id].length }))
+        .sort((a, b) => b.count - a.count);
 
+      // Greedy masonry: fill shortest column
       const colCount = window.innerWidth <= 768 ? 1 : 3;
       const columns = Array.from({ length: colCount }, () => ({ html: '', height: 0 }));
-
       catsWithEntries.forEach((cat, i) => {
         const shortest = columns.reduce((min, col, idx) => col.height < columns[min].height ? idx : min, 0);
         columns[shortest].html += catCards[i];
         columns[shortest].height += cat.count + 2;
       });
 
-      if (colCount === 1) {
-        el.innerHTML = columns[0].html;
-      } else {
-        el.innerHTML = columns.map(col => `<div class="masonry-col">${col.html}</div>`).join('');
-      }
+      el.innerHTML = colCount === 1
+        ? columns[0].html
+        : columns.map(col => `<div class="masonry-col">${col.html}</div>`).join('');
     }
 
     lucide.createIcons({ el });
@@ -1000,8 +989,7 @@ body{min-height:100vh;background:var(--bg)}
 
   function attachDragListeners() {
     if (!editMode || !isOwner) return;
-    const rows = document.querySelectorAll('.entry-row[draggable]');
-    rows.forEach(row => {
+    document.querySelectorAll('.entry-row[draggable]').forEach(row => {
       row.addEventListener('dragstart', e => {
         draggedEntry = row.dataset.id;
         row.classList.add('dragging');
@@ -1026,7 +1014,7 @@ body{min-height:100vh;background:var(--bg)}
 
     document.querySelectorAll('.entry-title[data-id]').forEach(titleEl => {
       titleEl.addEventListener('blur', async () => {
-        if (!titleEl.contentEditable || titleEl.contentEditable === 'false') return;
+        if (titleEl.contentEditable !== 'true') return;
         const id = titleEl.dataset.id;
         const newTitle = titleEl.textContent.trim();
         const oldEntry = entries.find(e => e.id === id);
@@ -1052,17 +1040,15 @@ body{min-height:100vh;background:var(--bg)}
 
   function toggleTitleEdit(id) {
     const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
-    const btnEl = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
-    const rowEl = document.querySelector(`.entry-row[data-id="${id}"]`);
-    if (!titleEl || !btnEl || !rowEl) return;
-
+    const btnEl   = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
+    if (!titleEl || !btnEl) return;
     if (titleEl.contentEditable === 'true') {
       titleEl.blur();
     } else {
       titleEl.contentEditable = 'true';
-      titleEl.style.background = 'var(--surface)';
-      titleEl.style.outline = '2px solid var(--base02)';
-      titleEl.style.whiteSpace = 'normal';
+      titleEl.style.background   = 'var(--surface)';
+      titleEl.style.outline      = '2px solid var(--base02)';
+      titleEl.style.whiteSpace   = 'normal';
       btnEl.innerHTML = '<i data-lucide="check" width="16" height="16"></i>';
       lucide.createIcons({ el: btnEl });
       titleEl.focus();
@@ -1078,18 +1064,20 @@ body{min-height:100vh;background:var(--bg)}
 
   function finishTitleEdit(id) {
     const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
-    const btnEl = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
+    const btnEl   = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
     if (!titleEl || !btnEl) return;
     titleEl.contentEditable = 'false';
     titleEl.style.background = '';
-    titleEl.style.outline = '';
+    titleEl.style.outline    = '';
     titleEl.style.whiteSpace = '';
     btnEl.innerHTML = '<i data-lucide="square-pen" width="16" height="16"></i>';
     lucide.createIcons({ el: btnEl });
   }
 
   function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   // ── Init Lucide icons for static HTML ────────────────────
@@ -1099,7 +1087,9 @@ body{min-height:100vh;background:var(--bg)}
   function exportCSV() {
     closeAllDropdowns();
     if (!entries.length) { showToast('Nothing to export yet.'); return; }
-    const rows = entries.map(e => [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type, e.favorite ? 'Yes' : 'No'].join(','));
+    const rows = entries.map(e =>
+      [`"${(e.title||'').replace(/"/g,'""')}"`, getYear(e), e.type, e.favorite ? 'Yes' : 'No'].join(',')
+    );
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['Title,Year,Category,Favorite\n' + rows.join('\n')], { type: 'text/csv' }));
     a.download = `media-log-${selectedYear}.csv`;
@@ -1107,14 +1097,12 @@ body{min-height:100vh;background:var(--bg)}
     showToast('CSV exported!');
   }
 
-  // ── Auth error ────────────────────────────────────────────
   function showAuthError(msg) {
     const el = document.getElementById('authError');
     el.textContent = msg;
     el.classList.add('visible');
   }
 
-  // ── Toast ─────────────────────────────────────────────────
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
