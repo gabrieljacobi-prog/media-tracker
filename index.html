@@ -135,7 +135,6 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   max-width:1440px;
   width:100%;
   margin:0 auto;
-  overflow:hidden;
 }
 
 /* ── Auth Error ───────────────────────────────────────── */
@@ -329,9 +328,9 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-/* Star in normal view — only rendered when favorited, gold fill + dark outline */
+/* Star in normal view — only rendered when favorited, gold fill + amber outline */
 .fav-badge{flex-shrink:0;display:flex;align-items:center}
-.fav-badge i,.fav-badge svg{width:15px;height:15px;fill:var(--gold);stroke:var(--base02);stroke-width:2px}
+.fav-badge i,.fav-badge svg{width:20px;height:20px;fill:var(--gold);stroke:#8C6D31;stroke-width:2px}
 /* Star in edit mode — outline idle, gold outline hover, filled when starred */
 .star-btn{
   background:none;border:none;cursor:pointer;padding:2px;
@@ -430,12 +429,12 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .hof-year:first-child{margin-top:0}
 .hof-cat-label{
-  display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:6px;font-size:18px;font-weight:700;
   margin:10px 0 4px;
 }
 .hof-entry{
-  display:flex;align-items:center;gap:8px;padding:4px 0;
-  font-size:17px;color:var(--text-secondary);
+  display:flex;align-items:center;gap:8px;padding:5px 0;
+  font-size:20px;color:var(--text-secondary);
 }
 .hof-empty{text-align:center;padding:48px 24px;color:var(--text-muted);font-size:16px}
 
@@ -446,6 +445,8 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .menu-dropdown{right:120px}
   .container{padding:0 120px 80px}
   .entry-row{font-size:21px}
+  .hof-entry{font-size:21px}
+  .hof-cat-label{font-size:19px}
 }
 
 /* ── Mobile ───────────────────────────────────────────── */
@@ -1128,7 +1129,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
           } else {
             // Normal view: only show star if favorited (filled, no outline otherwise)
             const starEl = e.favorite
-              ? `<span class="fav-badge"><i data-lucide="star" style="width:15px;height:15px;fill:var(--gold);stroke:var(--base02);stroke-width:2px"></i></span>`
+              ? `<span class="fav-badge"><i data-lucide="star" style="width:20px;height:20px;fill:var(--gold);stroke:#8C6D31;stroke-width:2px"></i></span>`
               : '';
             return `
               <div class="entry-row">
