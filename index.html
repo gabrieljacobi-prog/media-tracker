@@ -430,7 +430,40 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .stat-pill.animate-in{animation:pillIn .18s cubic-bezier(.34,1.56,.64,1) both}
 
-/* ── Skeleton loading — removed ───────────────────────── */
+/* ── Skeleton loading ─────────────────────────────────── */
+@keyframes shimmer{
+  0%{background-position:-400px 0}
+  100%{background-position:400px 0}
+}
+.skeleton-wrap{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  padding:24px 80px 40px;
+}
+@media(max-width:1279px){.skeleton-wrap{padding:20px 40px 32px}}
+@media(max-width:768px){.skeleton-wrap{grid-template-columns:1fr;padding:16px 20px 28px}}
+.skeleton-col{display:flex;flex-direction:column;gap:16px}
+.skeleton-card{
+  border:var(--sw-heavy) solid var(--border-card);
+  border-radius:20px;padding:20px 20px 16px;
+  background:var(--surface);
+  overflow:hidden;
+}
+.skeleton-bar{
+  border-radius:6px;
+  background:linear-gradient(90deg,var(--base2) 25%,var(--base3) 50%,var(--base2) 75%);
+  background-size:400px 100%;
+  animation:shimmer 1.4s infinite linear;
+}
+.skeleton-header{height:18px;width:55%;margin-bottom:14px}
+.skeleton-line{height:14px;margin-bottom:8px}
+.skeleton-line:last-child{margin-bottom:0}
+.skeleton-line.w80{width:80%}
+.skeleton-line.w65{width:65%}
+.skeleton-line.w90{width:90%}
+.skeleton-line.w50{width:50%}
+#skeletonLoader{padding-top:0}
 
 /* ── Hall of Fame modal ───────────────────────────────── */
 .hof-overlay{
@@ -609,6 +642,55 @@ body.hof-open{overflow:hidden}
     <div class="stats-row" id="statsPills"></div>
   </div>
 
+  <!-- Skeleton loader (shown while Firestore loads) -->
+  <div id="skeletonLoader" class="skeleton-wrap">
+    <div class="skeleton-col">
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+        <div class="skeleton-bar skeleton-line w65"></div>
+        <div class="skeleton-bar skeleton-line w90"></div>
+        <div class="skeleton-bar skeleton-line w50"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w90"></div>
+        <div class="skeleton-bar skeleton-line w70"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+      </div>
+    </div>
+    <div class="skeleton-col">
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w65"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+        <div class="skeleton-bar skeleton-line w90"></div>
+        <div class="skeleton-bar skeleton-line w50"></div>
+        <div class="skeleton-bar skeleton-line w75"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+        <div class="skeleton-bar skeleton-line w65"></div>
+      </div>
+    </div>
+    <div class="skeleton-col">
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w90"></div>
+        <div class="skeleton-bar skeleton-line w70"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="skeleton-bar skeleton-header"></div>
+        <div class="skeleton-bar skeleton-line w65"></div>
+        <div class="skeleton-bar skeleton-line w80"></div>
+        <div class="skeleton-bar skeleton-line w90"></div>
+        <div class="skeleton-bar skeleton-line w50"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Entries -->
   <div class="entries-columns" id="entriesList" style="display:none"></div>
 </div>
@@ -759,6 +841,7 @@ body.hof-open{overflow:hidden}
       setSyncStatus('synced');
       if (isFirstLoad) {
         isFirstLoad = false;
+        document.getElementById('skeletonLoader').style.display = 'none';
         document.getElementById('entriesList').style.display = '';
         document.getElementById('statsArea').style.display = '';
       }
@@ -1140,11 +1223,22 @@ body.hof-open{overflow:hidden}
 
     el.innerHTML = html;
     el.classList.toggle('has-filter', activeFilter !== 'All');
+    el.dataset.animatePills = 'pending';
     lucide.createIcons({ el });
   }
 
   function setFilter(f) {
     activeFilter = f;
+    // Update active class and has-filter state without rebuilding or re-animating pills
+    const el = document.getElementById('statsPills');
+    el.querySelectorAll('.stat-pill').forEach(pill => {
+      const onclick = pill.getAttribute('onclick') || '';
+      const pillFilter = onclick.match(/setFilter\('(.*)'\)/)?.[1];
+      pill.classList.toggle('active', pillFilter === f);
+      // Remove animate-in so the opacity CSS rules can take effect
+      pill.classList.remove('animate-in');
+    });
+    el.classList.toggle('has-filter', f !== 'All');
     renderEntries();
   }
 
@@ -1281,11 +1375,14 @@ body.hof-open{overflow:hidden}
       card.style.animationDelay = (i * 40) + 'ms';
       card.classList.add('animate-in');
     });
-    // Stagger stat pills
-    document.querySelectorAll('.stat-pill').forEach((pill, i) => {
-      pill.style.animationDelay = (i * 30) + 'ms';
-      pill.classList.add('animate-in');
-    });
+    // Stagger stat pills — only when pills were freshly built by buildTypePills
+    if (document.getElementById('statsPills').dataset.animatePills === 'pending') {
+      document.querySelectorAll('.stat-pill').forEach((pill, i) => {
+        pill.style.animationDelay = (i * 30) + 'ms';
+        pill.classList.add('animate-in');
+      });
+      delete document.getElementById('statsPills').dataset.animatePills;
+    }
     attachDragListeners();
     attachTitleTooltips();
   }
