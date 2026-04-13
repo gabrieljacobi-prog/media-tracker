@@ -431,40 +431,21 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .stat-pill.animate-in{animation:pillIn .18s cubic-bezier(.34,1.56,.64,1) both}
 
-/* ── Skeleton loading ─────────────────────────────────── */
-@keyframes shimmer{
-  0%{background-position:-400px 0}
-  100%{background-position:400px 0}
+/* ── Spinner loading ──────────────────────────────────── */
+@keyframes spin{
+  to{transform:rotate(360deg)}
 }
-.skeleton-wrap{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-  padding:24px 80px 40px;
+#skeletonLoader{
+  display:flex;align-items:center;justify-content:center;
+  padding:80px 0;
 }
-@media(max-width:1279px){.skeleton-wrap{padding:20px 40px 32px}}
-@media(max-width:768px){.skeleton-wrap{grid-template-columns:1fr;padding:16px 20px 28px}}
-.skeleton-col{display:flex;flex-direction:column;gap:16px}
-.skeleton-card{
-  border:var(--sw-heavy) solid var(--border-card);
-  border-radius:20px;padding:20px 20px 16px;
-  background:var(--surface);
-  overflow:hidden;
+.spinner{
+  width:40px;height:40px;
+  border:3px solid var(--border-card);
+  border-top-color:var(--text-muted);
+  border-radius:50%;
+  animation:spin .75s linear infinite;
 }
-.skeleton-bar{
-  border-radius:6px;
-  background:linear-gradient(90deg,var(--base2) 25%,var(--base3) 50%,var(--base2) 75%);
-  background-size:400px 100%;
-  animation:shimmer 1.4s infinite linear;
-}
-.skeleton-header{height:18px;width:55%;margin-bottom:14px}
-.skeleton-line{height:14px;margin-bottom:8px}
-.skeleton-line:last-child{margin-bottom:0}
-.skeleton-line.w80{width:80%}
-.skeleton-line.w65{width:65%}
-.skeleton-line.w90{width:90%}
-.skeleton-line.w50{width:50%}
-#skeletonLoader{padding-top:0}
 
 /* ── Hall of Fame modal ───────────────────────────────── */
 .hof-overlay{
@@ -643,53 +624,9 @@ body.hof-open{overflow:hidden}
     <div class="stats-row" id="statsPills"></div>
   </div>
 
-  <!-- Skeleton loader (shown while Firestore loads) -->
-  <div id="skeletonLoader" class="skeleton-wrap">
-    <div class="skeleton-col">
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-        <div class="skeleton-bar skeleton-line w65"></div>
-        <div class="skeleton-bar skeleton-line w90"></div>
-        <div class="skeleton-bar skeleton-line w50"></div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w90"></div>
-        <div class="skeleton-bar skeleton-line w70"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-      </div>
-    </div>
-    <div class="skeleton-col">
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w65"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-        <div class="skeleton-bar skeleton-line w90"></div>
-        <div class="skeleton-bar skeleton-line w50"></div>
-        <div class="skeleton-bar skeleton-line w75"></div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-        <div class="skeleton-bar skeleton-line w65"></div>
-      </div>
-    </div>
-    <div class="skeleton-col">
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w90"></div>
-        <div class="skeleton-bar skeleton-line w70"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-      </div>
-      <div class="skeleton-card">
-        <div class="skeleton-bar skeleton-header"></div>
-        <div class="skeleton-bar skeleton-line w65"></div>
-        <div class="skeleton-bar skeleton-line w80"></div>
-        <div class="skeleton-bar skeleton-line w90"></div>
-        <div class="skeleton-bar skeleton-line w50"></div>
-      </div>
-    </div>
+  <!-- Spinner loader (shown while Firestore loads) -->
+  <div id="skeletonLoader">
+    <div class="spinner"></div>
   </div>
 
   <!-- Entries -->
@@ -1390,8 +1327,15 @@ body.hof-open{overflow:hidden}
     // Stagger stat pills — only when pills were freshly built by buildTypePills
     if (document.getElementById('statsPills').dataset.animatePills === 'pending') {
       document.querySelectorAll('.stat-pill').forEach((pill, i) => {
-        pill.style.animationDelay = (i * 30) + 'ms';
-        pill.classList.add('animate-in');
+        // Only animate-in pills that will be fully visible; dimmed pills must not
+        // get the animation because its fill-mode:both locks opacity to 1 at end.
+        const onclick = pill.getAttribute('onclick') || '';
+        const pillFilter = onclick.match(/setFilter\('(.*)'\)/)?.[1];
+        const willBeDimmed = activeFilter !== 'All' && pillFilter !== activeFilter;
+        if (!willBeDimmed) {
+          pill.style.animationDelay = (i * 30) + 'ms';
+          pill.classList.add('animate-in');
+        }
       });
       delete document.getElementById('statsPills').dataset.animatePills;
     }
