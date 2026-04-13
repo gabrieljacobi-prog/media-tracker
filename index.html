@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Media Tracker</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -241,6 +242,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   background:var(--surface);border:var(--sw) solid var(--border);border-radius:20px;
   padding:8px 16px;width:260px;transition:all .2s;
 }
+.search-bar:focus-within{border-color:var(--base02)}
 .search-bar input{
   flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:17px;
   color:var(--text);min-width:0;
@@ -350,7 +352,10 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .btn-icon:hover{background:var(--surface)}
 .del-btn{color:var(--error)}
 .del-btn:hover{background:rgba(236,92,89,.1)}
-.drag-handle{cursor:grab;color:var(--text-muted)}
+.drag-handle{cursor:grab;color:var(--text-muted);touch-action:none}
+@media(max-width:768px){
+  .drag-handle{padding:4px 2px;color:var(--base0)} /* slightly more visible, easier to tap */
+}
 .entry-row.dragging{opacity:.4}
 .entry-row.drag-over{border-top:2px solid var(--base02)}
 
@@ -370,32 +375,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── Skeleton loading ─────────────────────────────────── */
-@keyframes shimmer{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-.skeleton-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:start;
-}
-.skeleton-card{
-  border-radius:16px;overflow:hidden;
-  border:var(--sw-heavy) solid var(--border-card);
-  padding:16px;margin-bottom:16px;
-}
-.skeleton-bar{
-  height:14px;border-radius:8px;margin-bottom:10px;
-  background:linear-gradient(90deg,var(--surface) 25%,var(--border-card) 50%,var(--surface) 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.6s infinite;
-}
-.skeleton-bar.header{height:18px;width:55%;margin-bottom:14px}
-.skeleton-bar.w80{width:80%}
-.skeleton-bar.w65{width:65%}
-.skeleton-bar.w90{width:90%}
-.skeleton-bar.w50{width:50%}
-.skeleton-bar.w75{width:75%}
-@media(max-width:768px){.skeleton-grid{grid-template-columns:1fr}}
+/* ── Skeleton loading — removed ───────────────────────── */
 
 /* ── Hall of Fame modal ───────────────────────────────── */
 .hof-overlay{
@@ -404,6 +384,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   align-items:center;justify-content:center;padding:24px;
 }
 .hof-overlay.open{display:flex}
+body.hof-open{overflow:hidden}
 .hof-modal{
   background:var(--bg);border:var(--sw-heavy) solid var(--border-card);
   border-radius:24px;width:100%;max-width:680px;
@@ -449,6 +430,10 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .hof-cat-label{font-size:19px}
 }
 
+/* ── Truncated title tooltip ──────────────────────────── */
+/* Native title attr handles the tooltip; we just ensure cursor signals it */
+.entry-title[title]{cursor:default}
+
 /* ── Mobile ───────────────────────────────────────────── */
 @media(max-width:768px){
   .navbar{height:64px;padding:0 16px}
@@ -465,6 +450,12 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   .entries-columns{grid-template-columns:1fr}
   .entry-counter-num{font-size:48px}
   .add-form{max-width:none;padding:24px 16px;margin-left:0;margin-right:0}
+
+  /* Slightly smaller text so titles truncate less often */
+  .entry-row{font-size:16px}
+  .cat-group-header{font-size:15px}
+  .hof-entry{font-size:16px}
+
 }
 </style>
 </head>
@@ -561,22 +552,6 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
       <span class="entry-counter-label">Entries</span>
     </div>
     <div class="stats-row" id="statsPills"></div>
-  </div>
-
-  <!-- Skeleton (shown while initial data loads) -->
-  <div id="skeletonGrid" class="skeleton-grid">
-    <div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w80"></div><div class="skeleton-bar w65"></div><div class="skeleton-bar w90"></div><div class="skeleton-bar w50"></div></div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w80"></div></div>
-    </div>
-    <div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w90"></div><div class="skeleton-bar w65"></div><div class="skeleton-bar w80"></div></div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w50"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w90"></div></div>
-    </div>
-    <div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w75"></div><div class="skeleton-bar w65"></div></div>
-      <div class="skeleton-card"><div class="skeleton-bar header"></div><div class="skeleton-bar w80"></div><div class="skeleton-bar w50"></div><div class="skeleton-bar w90"></div></div>
-    </div>
   </div>
 
   <!-- Entries -->
@@ -706,7 +681,6 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
       setSyncStatus('synced');
       if (isFirstLoad) {
         isFirstLoad = false;
-        document.getElementById('skeletonGrid').style.display = 'none';
         document.getElementById('entriesList').style.display = '';
         document.getElementById('statsArea').style.display = '';
       }
@@ -1186,30 +1160,125 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
     lucide.createIcons({ el });
     attachDragListeners();
+    attachTitleTooltips();
   }
+
+  // On desktop, show native tooltip for truncated entry titles
+  function attachTitleTooltips() {
+    if (window.innerWidth <= 768) return;
+    document.querySelectorAll('.entry-title').forEach(el => {
+      // Only set title when text is actually clipped
+      if (el.scrollWidth > el.offsetWidth) {
+        el.title = el.textContent.trim();
+      } else {
+        el.removeAttribute('title');
+      }
+    });
+  }
+
+  // ── Touch drag state ──────────────────────────────────────
+  let touchDragId     = null;   // id of the row being dragged
+  let touchClone      = null;   // floating clone element
+  let touchOffsetY    = 0;      // finger offset within the row
+  let touchOverId     = null;   // id of the current drop target row
 
   function attachDragListeners() {
     if (!editMode || !isOwner) return;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     document.querySelectorAll('.entry-row[draggable]').forEach(row => {
-      row.addEventListener('dragstart', e => {
-        draggedEntry = row.dataset.id;
-        row.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      row.addEventListener('dragend', () => {
-        row.classList.remove('dragging');
-        draggedEntry = null;
+      // ── Desktop drag (unchanged) ───────────────────────────
+      if (!isTouchDevice) {
+        row.addEventListener('dragstart', e => {
+          draggedEntry = row.dataset.id;
+          row.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        row.addEventListener('dragend', () => {
+          row.classList.remove('dragging');
+          draggedEntry = null;
+          document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
+        });
+        row.addEventListener('dragover', e => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (draggedEntry && draggedEntry !== row.dataset.id) row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+        row.addEventListener('drop', async e => {
+          e.preventDefault();
+          if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
+        });
+      }
+
+      // ── Touch drag — only trigger from the drag handle ────
+      const handle = row.querySelector('.drag-handle');
+      if (!handle || !isTouchDevice) return;
+
+      handle.addEventListener('touchstart', e => {
+        e.preventDefault(); // prevent scroll while dragging
+        const touch = e.touches[0];
+        touchDragId  = row.dataset.id;
+        touchOverId  = null;
+
+        // Record offset so the clone is anchored where the finger touched
+        const rect  = row.getBoundingClientRect();
+        touchOffsetY = touch.clientY - rect.top;
+
+        // Create a visual clone that floats under the finger
+        touchClone = row.cloneNode(true);
+        touchClone.style.cssText = `
+          position:fixed;left:${rect.left}px;top:${rect.top}px;
+          width:${rect.width}px;opacity:0.85;pointer-events:none;
+          box-shadow:0 6px 20px rgba(0,0,0,.18);border-radius:8px;
+          background:var(--surface);z-index:500;transition:none;
+        `;
+        document.body.appendChild(touchClone);
+        row.style.opacity = '0.3';
+      }, { passive: false });
+
+      handle.addEventListener('touchmove', e => {
+        if (!touchDragId) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+
+        // Move the clone
+        if (touchClone) {
+          touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+        }
+
+        // Find which row the finger is over
+        touchClone.style.display = 'none';
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        touchClone.style.display = '';
+        const targetRow = el && el.closest('.entry-row[draggable]');
+
+        // Clear previous indicator
         document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
-      });
-      row.addEventListener('dragover', e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        if (draggedEntry && draggedEntry !== row.dataset.id) row.classList.add('drag-over');
-      });
-      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-      row.addEventListener('drop', async e => {
-        e.preventDefault();
-        if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
+
+        if (targetRow && targetRow.dataset.id !== touchDragId) {
+          touchOverId = targetRow.dataset.id;
+          targetRow.classList.add('drag-over');
+        } else {
+          touchOverId = null;
+        }
+      }, { passive: false });
+
+      handle.addEventListener('touchend', async () => {
+        if (!touchDragId) return;
+
+        // Clean up clone and highlight
+        if (touchClone) { touchClone.remove(); touchClone = null; }
+        document.querySelectorAll('.entry-row').forEach(r => {
+          r.classList.remove('drag-over');
+          r.style.opacity = '';
+        });
+
+        if (touchOverId && touchOverId !== touchDragId) {
+          await moveEntry(touchDragId, touchOverId);
+        }
+        touchDragId = null;
+        touchOverId = null;
       });
     });
 
@@ -1301,6 +1370,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   // ── Hall of Fame ──────────────────────────────────────────
   function showHallOfFame() {
     closeAllDropdowns();
+    document.body.classList.add('hof-open');
     const overlay = document.getElementById('hofOverlay');
     const body    = document.getElementById('hofBody');
 
@@ -1361,6 +1431,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 
   function closeHoF() {
     document.getElementById('hofOverlay').classList.remove('open');
+    document.body.classList.remove('hof-open');
   }
 
   // Close HoF on Escape key
