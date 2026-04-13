@@ -416,19 +416,19 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .hof-overlay.closing{animation:overlayOut .18s ease forwards}
 .hof-overlay.closing .hof-modal{animation:modalOut .18s ease forwards}
 
-/* Category cards: staggered fade-in */
+/* Category cards: staggered fade-in (class applied by JS) */
 @keyframes cardIn{
   from{opacity:0;transform:translateY(10px)}
   to  {opacity:1;transform:translateY(0)}
 }
-.cat-group{animation:cardIn .25s cubic-bezier(.22,1,.36,1) both}
+.cat-group.animate-in{animation:cardIn .25s cubic-bezier(.22,1,.36,1) both}
 
-/* Stat pills: pop in */
+/* Stat pills: pop in (class applied by JS) */
 @keyframes pillIn{
   from{opacity:0;transform:scale(.88)}
   to  {opacity:1;transform:scale(1)}
 }
-.stat-pill{animation:pillIn .18s cubic-bezier(.34,1.56,.64,1) both}
+.stat-pill.animate-in{animation:pillIn .18s cubic-bezier(.34,1.56,.64,1) both}
 
 /* ── Skeleton loading — removed ───────────────────────── */
 
@@ -1278,10 +1278,12 @@ body.hof-open{overflow:hidden}
     // Stagger card animations
     el.querySelectorAll('.cat-group').forEach((card, i) => {
       card.style.animationDelay = (i * 40) + 'ms';
+      card.classList.add('animate-in');
     });
     // Stagger stat pills
     document.querySelectorAll('.stat-pill').forEach((pill, i) => {
       pill.style.animationDelay = (i * 30) + 'ms';
+      pill.classList.add('animate-in');
     });
     attachDragListeners();
     attachTitleTooltips();
