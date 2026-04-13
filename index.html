@@ -59,7 +59,8 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 /* ── Navbar ───────────────────────────────────────────── */
 .navbar{
   height:88px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 80px;border-bottom:var(--sw) solid var(--border);position:relative;
+  padding:0 80px;border-bottom:var(--sw) solid var(--border);
+  position:sticky;top:0;z-index:100;background:var(--bg);
 }
 .navbar-left{display:flex;align-items:center;gap:16px;min-width:0}
 
