@@ -376,6 +376,60 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── Micro-animations ─────────────────────────────────── */
+
+/* Add Form: slide-down + fade */
+.add-form{transform-origin:top center}
+@keyframes formSlideIn{
+  from{opacity:0;transform:translateY(-12px) scaleY(.96)}
+  to  {opacity:1;transform:translateY(0)    scaleY(1)}
+}
+@keyframes formSlideOut{
+  from{opacity:1;transform:translateY(0)    scaleY(1)}
+  to  {opacity:0;transform:translateY(-12px) scaleY(.96)}
+}
+.add-form.animating-in {animation:formSlideIn .22s cubic-bezier(.22,1,.36,1) forwards}
+.add-form.animating-out{animation:formSlideOut .18s ease-in    forwards}
+
+/* Dropdown: fade + slight upward shift */
+@keyframes dropIn{
+  from{opacity:0;transform:translateY(-6px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+.dropdown.open{animation:dropIn .16s cubic-bezier(.22,1,.36,1) both}
+
+/* Year btn-wrap: fade + slide when hidden by search */
+.year-btn-wrap{
+  transition:opacity .2s ease, transform .2s ease;
+}
+.year-btn-wrap.hiding{
+  opacity:0;transform:translateX(-8px);pointer-events:none;
+}
+
+/* Hall of Fame overlay + modal */
+@keyframes overlayIn {from{opacity:0}to{opacity:1}}
+@keyframes modalIn  {from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes overlayOut{from{opacity:1}to{opacity:0}}
+@keyframes modalOut  {from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.95) translateY(12px)}}
+.hof-overlay.open{animation:overlayIn .2s ease both}
+.hof-overlay.open .hof-modal{animation:modalIn .22s cubic-bezier(.22,1,.36,1) both}
+.hof-overlay.closing{animation:overlayOut .18s ease forwards}
+.hof-overlay.closing .hof-modal{animation:modalOut .18s ease forwards}
+
+/* Category cards: staggered fade-in */
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(10px)}
+  to  {opacity:1;transform:translateY(0)}
+}
+.cat-group{animation:cardIn .25s cubic-bezier(.22,1,.36,1) both}
+
+/* Stat pills: pop in */
+@keyframes pillIn{
+  from{opacity:0;transform:scale(.88)}
+  to  {opacity:1;transform:scale(1)}
+}
+.stat-pill{animation:pillIn .18s cubic-bezier(.34,1.56,.64,1) both}
+
 /* ── Skeleton loading — removed ───────────────────────── */
 
 /* ── Hall of Fame modal ───────────────────────────────── */
@@ -829,8 +883,9 @@ body.hof-open{overflow:hidden}
   const searchInput = document.getElementById('searchInput');
   function setSearchVisuals(hasQuery) {
     document.getElementById('searchCloseBtn').style.display = hasQuery ? 'flex' : 'none';
-    // Hide the year selector while user has an active search query
-    document.querySelector('.year-btn-wrap').style.display = hasQuery ? 'none' : '';
+    // Hide the year selector while user has an active search query (animated)
+    const wrap = document.querySelector('.year-btn-wrap');
+    wrap.classList.toggle('hiding', hasQuery);
   }
 
   searchInput.addEventListener('input', () => {
@@ -862,7 +917,9 @@ body.hof-open{overflow:hidden}
 
   function openForm() {
     const form = document.getElementById('addForm');
-    form.classList.add('open');
+    form.classList.remove('animating-out');
+    form.classList.add('open', 'animating-in');
+    form.addEventListener('animationend', () => form.classList.remove('animating-in'), { once: true });
     document.getElementById('inputTitle').focus();
     buildFormCatPills();
     formFavorite = false;
@@ -873,8 +930,13 @@ body.hof-open{overflow:hidden}
   }
 
   function closeForm() {
-    document.getElementById('addForm').classList.remove('open');
-    document.getElementById('inputTitle').value = '';
+    const form = document.getElementById('addForm');
+    form.classList.remove('animating-in');
+    form.classList.add('animating-out');
+    form.addEventListener('animationend', () => {
+      form.classList.remove('open', 'animating-out');
+      document.getElementById('inputTitle').value = '';
+    }, { once: true });
   }
 
   function toggleFormFavorite() {
@@ -1022,14 +1084,38 @@ body.hof-open{overflow:hidden}
     } catch(e) { showToast('Error updating.'); }
   }
 
+  // ── Animated counter ──────────────────────────────────────
+  let _counterTarget = -1;
+  let _counterRaf    = null;
+  function animateCounter(target) {
+    const el = document.getElementById('entryCountNum');
+    if (target === _counterTarget) return;
+    const prev = _counterTarget;
+    _counterTarget = target;
+    if (_counterRaf) cancelAnimationFrame(_counterRaf);
+    // Always count from 0 on the very first reveal, otherwise from current displayed value
+    const from = prev < 0 ? 0 : (parseInt(el.textContent) || 0);
+    if (from === target) { el.textContent = target; return; }
+    const duration = Math.min(700, Math.max(200, Math.abs(target - from) * 20));
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      el.textContent = Math.round(from + (target - from) * eased);
+      if (t < 1) _counterRaf = requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    _counterRaf = requestAnimationFrame(step);
+  }
+
   // ── Stats pills (filter bar) ──────────────────────────────
   // baseEntries = already filtered by year+search (but NOT by category)
   function buildTypePills(baseEntries) {
     const el = document.getElementById('statsPills');
     const total = baseEntries.length;
 
-    // Update big counter
-    document.getElementById('entryCountNum').textContent = total;
+    // Update big counter (animated)
+    animateCounter(total);
 
     const counts = {};
     baseEntries.forEach(e => { if (e.type) counts[e.type] = (counts[e.type] || 0) + 1; });
@@ -1189,6 +1275,14 @@ body.hof-open{overflow:hidden}
     }
 
     lucide.createIcons({ el });
+    // Stagger card animations
+    el.querySelectorAll('.cat-group').forEach((card, i) => {
+      card.style.animationDelay = (i * 40) + 'ms';
+    });
+    // Stagger stat pills
+    document.querySelectorAll('.stat-pill').forEach((pill, i) => {
+      pill.style.animationDelay = (i * 30) + 'ms';
+    });
     attachDragListeners();
     attachTitleTooltips();
   }
@@ -1377,13 +1471,19 @@ body.hof-open{overflow:hidden}
     });
 
     body.innerHTML = html;
+    overlay.classList.remove('closing');
     overlay.classList.add('open');
     lucide.createIcons({ el: overlay });
   }
 
   function closeHoF() {
-    document.getElementById('hofOverlay').classList.remove('open');
-    document.body.classList.remove('hof-open');
+    const overlay = document.getElementById('hofOverlay');
+    if (!overlay.classList.contains('open')) return;
+    overlay.classList.add('closing');
+    overlay.addEventListener('animationend', () => {
+      overlay.classList.remove('open', 'closing');
+      document.body.classList.remove('hof-open');
+    }, { once: true });
   }
 
   // Close HoF on Escape key
