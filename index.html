@@ -273,6 +273,7 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .entry-counter-num{
   font-size:64px;font-weight:800;letter-spacing:-0.04em;color:var(--text);line-height:0.9;
+  min-width:0;display:inline-block;
 }
 .entry-counter-label{
   font-size:11px;font-weight:700;text-transform:uppercase;
@@ -807,17 +808,28 @@ body.hof-open{overflow:hidden}
     _counterTarget = target;
     if (_counterRaf) cancelAnimationFrame(_counterRaf);
     const from = prev < 0 ? 0 : (parseInt(el.textContent) || 0);
-    if (from === target) { el.textContent = target; return; }
+    if (from === target) { el.textContent = target; el.style.minWidth = ''; return; }
+    // Reserve space for the final number upfront so the pills don't wiggle
+    el.style.minWidth = measureTextWidth(el, String(target)) + 'px';
     const duration = Math.min(700, Math.max(200, Math.abs(target - from) * 20));
     const start = performance.now();
     function step(now) {
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
       el.textContent = Math.round(from + (target - from) * eased);
-      if (t < 1) _counterRaf = requestAnimationFrame(step);
-      else el.textContent = target;
+      if (t < 1) { _counterRaf = requestAnimationFrame(step); }
+      else { el.textContent = target; el.style.minWidth = ''; }
     }
     _counterRaf = requestAnimationFrame(step);
+  }
+
+  // Measure the rendered width of a string in a given element's font
+  function measureTextWidth(el, text) {
+    const style = getComputedStyle(el);
+    const canvas = measureTextWidth._canvas || (measureTextWidth._canvas = document.createElement('canvas'));
+    const ctx = canvas.getContext('2d');
+    ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    return Math.ceil(ctx.measureText(text).width);
   }
 
   // ── Boot ──────────────────────────────────────────────────
