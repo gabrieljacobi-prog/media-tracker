@@ -388,8 +388,8 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
   from{opacity:1;transform:translateY(0)    scaleY(1)}
   to  {opacity:0;transform:translateY(-12px) scaleY(.96)}
 }
-.add-form.animating-in {animation:formSlideIn .22s cubic-bezier(.22,1,.36,1) forwards}
-.add-form.animating-out{animation:formSlideOut .18s ease-in    forwards}
+.add-form.animating-in {animation:formSlideIn .22s cubic-bezier(.22,1,.36,1) both}
+.add-form.animating-out{animation:formSlideOut .18s ease-in    both}
 
 /* Dropdown: fade + slight upward shift */
 @keyframes dropIn{
@@ -715,6 +715,29 @@ body.hof-open{overflow:hidden}
     return e.sortOrder !== undefined ? e.sortOrder : getTimestamp(e);
   }
 
+  // ── Animated counter ──────────────────────────────────────
+  let _counterTarget = -1;
+  let _counterRaf    = null;
+  function animateCounter(target) {
+    const el = document.getElementById('entryCountNum');
+    if (target === _counterTarget) return;
+    const prev = _counterTarget;
+    _counterTarget = target;
+    if (_counterRaf) cancelAnimationFrame(_counterRaf);
+    const from = prev < 0 ? 0 : (parseInt(el.textContent) || 0);
+    if (from === target) { el.textContent = target; return; }
+    const duration = Math.min(700, Math.max(200, Math.abs(target - from) * 20));
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(from + (target - from) * eased);
+      if (t < 1) _counterRaf = requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    _counterRaf = requestAnimationFrame(step);
+  }
+
   // ── Boot ──────────────────────────────────────────────────
   document.getElementById('yearLabel').textContent = selectedYear;
   document.getElementById('inputYear').value = selectedYear;
@@ -917,8 +940,9 @@ body.hof-open{overflow:hidden}
 
   function openForm() {
     const form = document.getElementById('addForm');
-    form.classList.remove('animating-out');
-    form.classList.add('open', 'animating-in');
+    form.classList.add('open');
+    void form.offsetWidth; // force reflow so animation triggers fresh
+    form.classList.add('animating-in');
     form.addEventListener('animationend', () => form.classList.remove('animating-in'), { once: true });
     document.getElementById('inputTitle').focus();
     buildFormCatPills();
@@ -931,6 +955,7 @@ body.hof-open{overflow:hidden}
 
   function closeForm() {
     const form = document.getElementById('addForm');
+    if (!form.classList.contains('open')) return;
     form.classList.remove('animating-in');
     form.classList.add('animating-out');
     form.addEventListener('animationend', () => {
@@ -1082,30 +1107,6 @@ body.hof-open{overflow:hidden}
       await col.doc(id).update({ favorite: newVal });
       showToast(newVal ? 'Added to favorites!' : 'Removed from favorites.');
     } catch(e) { showToast('Error updating.'); }
-  }
-
-  // ── Animated counter ──────────────────────────────────────
-  let _counterTarget = -1;
-  let _counterRaf    = null;
-  function animateCounter(target) {
-    const el = document.getElementById('entryCountNum');
-    if (target === _counterTarget) return;
-    const prev = _counterTarget;
-    _counterTarget = target;
-    if (_counterRaf) cancelAnimationFrame(_counterRaf);
-    // Always count from 0 on the very first reveal, otherwise from current displayed value
-    const from = prev < 0 ? 0 : (parseInt(el.textContent) || 0);
-    if (from === target) { el.textContent = target; return; }
-    const duration = Math.min(700, Math.max(200, Math.abs(target - from) * 20));
-    const start = performance.now();
-    function step(now) {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-      el.textContent = Math.round(from + (target - from) * eased);
-      if (t < 1) _counterRaf = requestAnimationFrame(step);
-      else el.textContent = target;
-    }
-    _counterRaf = requestAnimationFrame(step);
   }
 
   // ── Stats pills (filter bar) ──────────────────────────────
