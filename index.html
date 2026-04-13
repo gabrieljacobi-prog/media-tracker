@@ -352,10 +352,10 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 .btn-icon:hover{background:var(--surface)}
 .del-btn{color:var(--error)}
 .del-btn:hover{background:rgba(236,92,89,.1)}
-.drag-handle{cursor:grab;color:var(--text-muted);touch-action:none}
-@media(max-width:768px){
-  .drag-handle{padding:4px 2px;color:var(--base0)} /* slightly more visible, easier to tap */
-}
+.drag-handle{cursor:grab;color:var(--text-muted)}
+.reorder-arrows{display:flex;flex-direction:column;flex-shrink:0;gap:0}
+.reorder-btn{padding:0;width:22px;height:20px;color:var(--text-muted)}
+.reorder-btn:hover{background:var(--surface);color:var(--text)}
 .entry-row.dragging{opacity:.4}
 .entry-row.drag-over{border-top:2px solid var(--base02)}
 
@@ -641,7 +641,7 @@ body.hof-open{overflow:hidden}
   let isOwner      = false;
   let currentUser  = null;
   let editMode     = false;
-  let draggedEntry = null;
+  let draggedEntry = null; // desktop drag
   let formFavorite = false;
   let isFirstLoad  = true;
 
@@ -960,6 +960,28 @@ body.hof-open{overflow:hidden}
     } catch(e) { showToast('Error reordering.'); }
   }
 
+  // ── Move entry one step up (-1) or down (+1) within its category ─
+  async function moveEntryStep(id, dir) {
+    const sorted = [...entries].sort((a, b) => getSortOrder(a) - getSortOrder(b));
+    const entry  = sorted.find(e => e.id === id);
+    if (!entry) return;
+    // Work within the same category so arrows feel intuitive
+    const catSorted = sorted.filter(e => e.type === entry.type);
+    const idx = catSorted.findIndex(e => e.id === id);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= catSorted.length) return; // already at boundary
+    // Swap sort orders with the neighbour
+    const neighbour = catSorted[swapIdx];
+    const myOrder   = getSortOrder(entry);
+    const theirOrder = getSortOrder(neighbour);
+    try {
+      const batch = db.batch();
+      batch.update(col.doc(id),           { sortOrder: theirOrder });
+      batch.update(col.doc(neighbour.id), { sortOrder: myOrder    });
+      await batch.commit();
+    } catch(e) { showToast('Error reordering.'); }
+  }
+
   // ── Schema Migration (owner-only, runs once) ──────────────
   async function migrateSchema() {
     const batch = db.batch();
@@ -1085,10 +1107,17 @@ body.hof-open{overflow:hidden}
       return cats.map(({ meta: cat, items: catItems }) => {
         const rows = catItems.map(e => {
           if (editMode && isOwner) {
+            const isMobile = window.innerWidth <= 768;
             // Edit mode: star to the right of title, filled if favorited
             return `
-              <div class="entry-row draggable" draggable="true" data-id="${e.id}">
-                <i data-lucide="grip-vertical" class="drag-handle" style="width:18px;height:18px;flex-shrink:0"></i>
+              <div class="entry-row draggable" draggable="${!isMobile}" data-id="${e.id}">
+                ${isMobile
+                  ? `<div class="reorder-arrows">
+                       <button class="btn-icon reorder-btn" onclick="moveEntryStep('${e.id}',-1)" title="Move up"><i data-lucide="chevron-up" width="16" height="16"></i></button>
+                       <button class="btn-icon reorder-btn" onclick="moveEntryStep('${e.id}',1)" title="Move down"><i data-lucide="chevron-down" width="16" height="16"></i></button>
+                     </div>`
+                  : `<i data-lucide="grip-vertical" class="drag-handle" style="width:18px;height:18px;flex-shrink:0"></i>`
+                }
                 <div class="entry-title" data-id="${e.id}" style="flex:1;min-width:0;padding:2px 4px;border-radius:4px">${escHtml(e.title)}</div>
                 <button class="star-btn${e.favorite ? ' starred' : ''}" onclick="toggleFavorite('${e.id}')" title="Toggle favorite">
                   <i data-lucide="star"></i>
@@ -1176,109 +1205,31 @@ body.hof-open{overflow:hidden}
     });
   }
 
-  // ── Touch drag state ──────────────────────────────────────
-  let touchDragId     = null;   // id of the row being dragged
-  let touchClone      = null;   // floating clone element
-  let touchOffsetY    = 0;      // finger offset within the row
-  let touchOverId     = null;   // id of the current drop target row
-
   function attachDragListeners() {
     if (!editMode || !isOwner) return;
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    // Arrow buttons handle reordering on mobile; desktop uses HTML drag API.
+    if (window.innerWidth <= 768) return;
 
-    document.querySelectorAll('.entry-row[draggable]').forEach(row => {
-      // ── Desktop drag (unchanged) ───────────────────────────
-      if (!isTouchDevice) {
-        row.addEventListener('dragstart', e => {
-          draggedEntry = row.dataset.id;
-          row.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-        });
-        row.addEventListener('dragend', () => {
-          row.classList.remove('dragging');
-          draggedEntry = null;
-          document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
-        });
-        row.addEventListener('dragover', e => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (draggedEntry && draggedEntry !== row.dataset.id) row.classList.add('drag-over');
-        });
-        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-        row.addEventListener('drop', async e => {
-          e.preventDefault();
-          if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
-        });
-      }
-
-      // ── Touch drag — only trigger from the drag handle ────
-      const handle = row.querySelector('.drag-handle');
-      if (!handle || !isTouchDevice) return;
-
-      handle.addEventListener('touchstart', e => {
-        e.preventDefault(); // prevent scroll while dragging
-        const touch = e.touches[0];
-        touchDragId  = row.dataset.id;
-        touchOverId  = null;
-
-        // Record offset so the clone is anchored where the finger touched
-        const rect  = row.getBoundingClientRect();
-        touchOffsetY = touch.clientY - rect.top;
-
-        // Create a visual clone that floats under the finger
-        touchClone = row.cloneNode(true);
-        touchClone.style.cssText = `
-          position:fixed;left:${rect.left}px;top:${rect.top}px;
-          width:${rect.width}px;opacity:0.85;pointer-events:none;
-          box-shadow:0 6px 20px rgba(0,0,0,.18);border-radius:8px;
-          background:var(--surface);z-index:500;transition:none;
-        `;
-        document.body.appendChild(touchClone);
-        row.style.opacity = '0.3';
-      }, { passive: false });
-
-      handle.addEventListener('touchmove', e => {
-        if (!touchDragId) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-
-        // Move the clone
-        if (touchClone) {
-          touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
-        }
-
-        // Find which row the finger is over
-        touchClone.style.display = 'none';
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        touchClone.style.display = '';
-        const targetRow = el && el.closest('.entry-row[draggable]');
-
-        // Clear previous indicator
+    document.querySelectorAll('.entry-row[draggable="true"]').forEach(row => {
+      row.addEventListener('dragstart', e => {
+        draggedEntry = row.dataset.id;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        draggedEntry = null;
         document.querySelectorAll('.entry-row').forEach(r => r.classList.remove('drag-over'));
-
-        if (targetRow && targetRow.dataset.id !== touchDragId) {
-          touchOverId = targetRow.dataset.id;
-          targetRow.classList.add('drag-over');
-        } else {
-          touchOverId = null;
-        }
-      }, { passive: false });
-
-      handle.addEventListener('touchend', async () => {
-        if (!touchDragId) return;
-
-        // Clean up clone and highlight
-        if (touchClone) { touchClone.remove(); touchClone = null; }
-        document.querySelectorAll('.entry-row').forEach(r => {
-          r.classList.remove('drag-over');
-          r.style.opacity = '';
-        });
-
-        if (touchOverId && touchOverId !== touchDragId) {
-          await moveEntry(touchDragId, touchOverId);
-        }
-        touchDragId = null;
-        touchOverId = null;
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedEntry && draggedEntry !== row.dataset.id) row.classList.add('drag-over');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('drop', async e => {
+        e.preventDefault();
+        if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
       });
     });
 
