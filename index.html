@@ -54,7 +54,8 @@
   background:var(--bg);
 }
 
-body{min-height:100vh;background:var(--bg);overflow-x:hidden}
+html{overflow-x:hidden}
+body{min-height:100vh;background:var(--bg);overflow-x:hidden;width:100%;max-width:100%;position:relative}
 
 /* ── Navbar ───────────────────────────────────────────── */
 .navbar{
@@ -257,7 +258,11 @@ body{min-height:100vh;background:var(--bg);overflow-x:hidden}
 }
 .search-close-btn i,.search-close-btn svg{width:16px;height:16px}
 
-/* Divider below year+search row — always spans full viewport width */
+/* Divider below year+search row — full-viewport width on desktop.
+   On mobile we use negative margins instead of 100vw, because 100vw +
+   translateX(-50%) was interacting badly with the dropdown/Add-Entry open
+   animations (transforms break body's overflow-x:hidden clipping on mobile
+   Safari), causing horizontal overflow and pushing the sticky navbar off. */
 .year-divider{
   height:var(--sw);background:var(--border);margin-bottom:28px;
   width:100vw;position:relative;left:50%;transform:translateX(-50%);
@@ -514,6 +519,13 @@ body.hof-open{overflow:hidden}
   .logo-mobile{display:block}
 
   .container{padding:0 16px 48px}
+  /* On mobile, avoid 100vw + translateX trick (causes horiz overflow during
+     form/dropdown animations on iOS). Use negative margins equal to container
+     padding so the divider still spans edge-to-edge. */
+  .year-divider{
+    width:auto;left:auto;transform:none;
+    margin-left:-16px;margin-right:-16px;
+  }
   .year-search-row{gap:12px;padding:16px 0}
   .search-bar{flex:1;min-width:0}
   .stats-area{flex-direction:column;align-items:flex-start;gap:16px}
@@ -1358,6 +1370,12 @@ body.hof-open{overflow:hidden}
 
   function attachDragListeners() {
     if (!editMode || !isOwner) return;
+
+    // Title rename listeners — must run on BOTH mobile and desktop, otherwise
+    // tapping the confirm (check) button on mobile has no effect because the
+    // blur handler that persists the rename never fires.
+    attachTitleEditListeners();
+
     // Arrow buttons handle reordering on mobile; desktop uses HTML drag API.
     if (window.innerWidth <= 768) return;
 
@@ -1383,7 +1401,9 @@ body.hof-open{overflow:hidden}
         if (draggedEntry && draggedEntry !== row.dataset.id) await moveEntry(draggedEntry, row.dataset.id);
       });
     });
+  }
 
+  function attachTitleEditListeners() {
     document.querySelectorAll('.entry-title[data-id]').forEach(titleEl => {
       titleEl.addEventListener('blur', async () => {
         if (titleEl.contentEditable !== 'true') return;
@@ -1410,28 +1430,36 @@ body.hof-open{overflow:hidden}
     });
   }
 
+  // Short-lived flag set when finishTitleEdit runs. On mobile, tapping the
+  // confirm button blurs the contentEditable first (which saves + finishes),
+  // then fires the button's click — without this guard, toggleTitleEdit would
+  // see contentEditable === 'false' and immediately re-enter edit mode.
+  let _lastTitleEditFinish = 0;
+
   function toggleTitleEdit(id) {
     const titleEl = document.querySelector(`.entry-title[data-id="${id}"]`);
     const btnEl   = document.querySelector(`.edit-title-btn[data-id="${id}"]`);
     if (!titleEl || !btnEl) return;
     if (titleEl.contentEditable === 'true') {
       titleEl.blur();
-    } else {
-      titleEl.contentEditable = 'true';
-      titleEl.style.background   = 'var(--surface)';
-      titleEl.style.outline      = '2px solid var(--base02)';
-      titleEl.style.whiteSpace   = 'normal';
-      btnEl.innerHTML = '<i data-lucide="check" width="16" height="16"></i>';
-      lucide.createIcons({ el: btnEl });
-      titleEl.focus();
-      setTimeout(() => {
-        const range = document.createRange();
-        range.selectNodeContents(titleEl);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }, 0);
+      return;
     }
+    // Ignore a tap that arrives immediately after a blur-triggered save
+    if (Date.now() - _lastTitleEditFinish < 400) return;
+    titleEl.contentEditable = 'true';
+    titleEl.style.background   = 'var(--surface)';
+    titleEl.style.outline      = '2px solid var(--base02)';
+    titleEl.style.whiteSpace   = 'normal';
+    btnEl.innerHTML = '<i data-lucide="check" width="16" height="16"></i>';
+    lucide.createIcons({ el: btnEl });
+    titleEl.focus();
+    setTimeout(() => {
+      const range = document.createRange();
+      range.selectNodeContents(titleEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }, 0);
   }
 
   function finishTitleEdit(id) {
@@ -1444,6 +1472,7 @@ body.hof-open{overflow:hidden}
     titleEl.style.whiteSpace = '';
     btnEl.innerHTML = '<i data-lucide="square-pen" width="16" height="16"></i>';
     lucide.createIcons({ el: btnEl });
+    _lastTitleEditFinish = Date.now();
   }
 
   function escHtml(s) {
